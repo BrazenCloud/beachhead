@@ -37,3 +37,38 @@ $env:BrazenCloudSessionToken
 $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 #endregion
+
+$group = (Get-BcAuthenticationCurrentUser).HomeContainerId
+
+#region Initiate asset discovery
+$set = New-BcSet
+Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
+$action = Get-BcRepository -Name 'map:discover'
+$jobSplat = @{
+    Name          = 'Beachhead Asset Discovery'
+    GroupId       = $group
+    EndpointSetId = $set
+    IsEnabled     = $true
+    IsHidden      = $false
+    Actions       = @(
+        @{
+            RepositoryActionId = $action.Id
+            Settings           = @{
+                "Update Assets" = $false
+            }
+        }
+    )
+    Schedule      = New-RwJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
+}
+$job = New-BcJob @jobSplat
+
+Write-Host "Created Asset discovery job with ID: $($job.JobId)"
+#endregion
+
+#region Initiate autodeploy
+
+#endregion
+
+#region Initiate periodic jobs
+
+#endregion
