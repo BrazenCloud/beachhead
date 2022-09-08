@@ -1,0 +1,8 @@
+{
+    "Description": "Periodically checks for agent coverege as a part of the beachhead collection of actions.",
+    "Language": "PowerShell",
+    "Tags": [
+        "Beachhead",
+        "Windows"
+    ]
+}
