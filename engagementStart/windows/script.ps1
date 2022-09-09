@@ -66,7 +66,28 @@ Write-Host "Created Asset discovery job with ID: $($job.JobId)"
 #endregion
 
 #region Initiate autodeploy
+$set = New-BcSet
+Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
+$action = Get-BcRepository -Name 'runway:deploy'
+$jobSplat = @{
+    Name          = 'Beachhead Autodeploy'
+    GroupId       = $group
+    EndpointSetId = $set
+    IsEnabled     = $true
+    IsHidden      = $false
+    Actions       = @(
+        @{
+            RepositoryActionId = $action.Id
+            Settings           = @{
+                "Enrollment Token" = (New-BcEnrollmentSession -Type 'EnrollPersistentRunner' -Expiration (Get-Date).AddDays(30) -GroupId $group -IsOneTime $false).Token
+            }
+        }
+    )
+    Schedule      = New-RwJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
+}
+$job = New-BcJob @jobSplat
 
+Write-Host "Created autodeploy job with ID: $($job.JobId)"
 #endregion
 
 #region Initiate periodic jobs
