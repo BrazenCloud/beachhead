@@ -1,0 +1,13 @@
+{
+    "type": "agentInstall",
+    "Name": "FireFox",
+    "actions": [
+        {
+            "action": "deploy:msi",
+            "settings": {
+                "MSI URL": "https://brazenclouddlsstaging.z20.web.core.windows.net/Firefox%20Setup%20104.0.1.msi"
+            }
+        }
+    ],
+    "installedTag": "firefox:true"
+}
