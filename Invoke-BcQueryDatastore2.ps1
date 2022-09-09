@@ -2,6 +2,7 @@ Function Invoke-BcQueryDatastore2 {
     [cmdletbinding()]
     param (
         [string]$IndexName,
+        #example: @{query_string=@{query='agentInstall';default_field='type'}}
         [hashtable]$Query,
         [string]$GroupId,
         [int]$From = 0,
