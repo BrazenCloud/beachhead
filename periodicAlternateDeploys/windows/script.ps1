@@ -4,25 +4,7 @@ $settings = Get-Content .\settings.json | ConvertFrom-Json
 $settings
 
 # function to auth as the runner
-Function Get-BrazenCloudDaemonToken {
-    # outputs the session token
-    [OutputType([System.String])]
-    [CmdletBinding()]
-    param (
-        [string]$aToken,
-        [string]$Domain
-    )
-    $authResponse = Invoke-WebRequest -UseBasicParsing -Uri "$Domain/api/v2/auth/ping" -Headers @{
-        Authorization = "Daemon $aToken"
-    }
-    
-    if ($authResponse.Headers.Authorization -like 'Session *') {
-        return (($authResponse.Headers.Authorization | Select-Object -First 1) -split ' ')[1]
-    } else {
-        Throw 'Failed auth'
-        exit 1
-    }
-}
+. .\windows\dependencies\Get-BrazenCloudDaemonToken.ps1
 
 # set up the BrazenCloud module
 if (-not (Get-Module BrazenCloud -ListAvailable)) {

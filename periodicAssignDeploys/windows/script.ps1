@@ -4,25 +4,7 @@ $settings = Get-Content .\settings.json | ConvertFrom-Json
 $settings
 
 # function to auth as the runner
-Function Get-BrazenCloudDaemonToken {
-    # outputs the session token
-    [OutputType([System.String])]
-    [CmdletBinding()]
-    param (
-        [string]$aToken,
-        [string]$Domain
-    )
-    $authResponse = Invoke-WebRequest -UseBasicParsing -Uri "$Domain/api/v2/auth/ping" -Headers @{
-        Authorization = "Daemon $aToken"
-    }
-    
-    if ($authResponse.Headers.Authorization -like 'Session *') {
-        return (($authResponse.Headers.Authorization | Select-Object -First 1) -split ' ')[1]
-    } else {
-        Throw 'Failed auth'
-        exit 1
-    }
-}
+. .\windows\dependencies\Get-BrazenCloudDaemonToken.ps1
 
 # set up the BrazenCloud module
 if (-not (Get-Module BrazenCloud -ListAvailable)) {
@@ -37,3 +19,12 @@ $env:BrazenCloudSessionToken
 $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 #endregion
+
+$group = (Get-BcAuthenticationCurrentUser).HomeContainerId
+
+# Get agents to deploy
+Invoke-BcQueryDataStore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
+
+# Get all runners
+$runners = 
+Invoke-BcQueryRunner -MembershipCheckId $group -IncludeSubgroups -Skip 0 -Take 1000 -SortDirection 1

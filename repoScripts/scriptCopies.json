@@ -1,0 +1,16 @@
+{
+    "Get-BrazenCloudDaemonToken.ps1": [
+        "agentInstall",
+        "engagementStart",
+        "periodicAlternateDeploys",
+        "periodicAssignDeploys",
+        "periodicUpdateCoverage"
+    ],
+    "Invoke-BcBulkDatastoreInsert2.ps1": [],
+    "Invoke-BcQueryDatastore2.ps1": [
+        "engagementStart",
+        "periodicAlternateDeploys",
+        "periodicAssignDeploys",
+        "periodicUpdateCoverage"
+    ]
+}
