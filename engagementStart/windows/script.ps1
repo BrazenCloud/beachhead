@@ -92,4 +92,17 @@ Write-Host "Created autodeploy job with ID: $($job.JobId)"
 
 #region Initiate periodic jobs
 
+#region Initiate periodic agent query and deploy job
+
+#endregion
+
+#region Initiate alternate deploy
+
+#endregion
+
+#region Initiate coverage update
+
+#endregion
+
+
 #endregion
