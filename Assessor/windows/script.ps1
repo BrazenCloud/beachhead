@@ -75,23 +75,20 @@ Write-Host "Created autodeploy job with ID: $($job.JobId)"
 #region Initiate periodic jobs
 
 #region Initiate deployer
-$agentsToDeploy = Invoke-BcQueryDatastore2 -IndexName 'beachheadconfig' -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -GroupId $group
-$installCheck = (Get-BcRepository -Name 'beachhead:installCheck').Id
-
-foreach ($ai in $agentInstalls) {
-    $set = New-BcSet
-    Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
-    $jobSplat = @{
-        Name          = "Beachhead Deployer"
-        GroupId       = $group
-        EndpointSetId = $set
-        IsEnabled     = $true
-        IsHidden      = $false
-        Actions       = (Get-BcRepository -Name 'beachhead:deployer').Id
-        Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
-    }
-    New-BcJob @jobSplat
+$set = New-BcSet
+Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
+$jobSplat = @{
+    Name          = "Beachhead Deployer"
+    GroupId       = $group
+    EndpointSetId = $set
+    IsEnabled     = $true
+    IsHidden      = $false
+    Actions       = (Get-BcRepository -Name 'beachhead:deployer').Id
+    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
 }
+New-BcJob @jobSplat
+
+Write-Host "Created job: Beachhead Deployer"
 
 #endregion
 
@@ -100,7 +97,20 @@ foreach ($ai in $agentInstalls) {
 #endregion
 
 #region Initiate monitor
+$set = New-BcSet
+Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
+$jobSplat = @{
+    Name          = "Beachhead Monitor"
+    GroupId       = $group
+    EndpointSetId = $set
+    IsEnabled     = $true
+    IsHidden      = $false
+    Actions       = (Get-BcRepository -Name 'beachhead:monitor').Id
+    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
+}
+New-BcJob @jobSplat
 
+Write-Host "Created job: Beachhead Monitor"
 #endregion
 
 

@@ -23,6 +23,7 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 
 # Get agents to deploy
+$installCheck = (Get-BcRepository -Name 'beachhead:installCheck').Id
 $agentInstalls = Invoke-BcQueryDataStore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
 
 # Get all runners in current group
@@ -39,7 +40,7 @@ while ($runners.Count -lt $r.FilteredCount) {
 }
 
 # foreach agentInstall, get runners lacking the tag and assign the job
-$deployActions = foreach ($atd in $agentsToDeploy) {
+$deployActions = foreach ($atd in $agentInstalls) {
     foreach ($action in $atd.actions) {
         @{
             RepositoryActionId = (Get-BcRepository -Name $action.action).Id
