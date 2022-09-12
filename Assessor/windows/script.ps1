@@ -25,7 +25,7 @@ $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 
 #region Initiate asset discovery
 $set = New-BcSet
-Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
+Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
 $assetdiscoverSplat = @{
     Name          = 'Beachhead Asset Discovery'
     GroupId       = $group
@@ -49,7 +49,7 @@ Write-Host "Created Asset discovery job with ID: $($job.JobId)"
 
 #region Initiate autodeploy
 $set = New-BcSet
-Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
+Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
 $action = Get-BcRepository -Name 'deploy:runway'
 $autodeploySplat = @{
     Name          = 'Beachhead Autodeploy'
@@ -76,7 +76,7 @@ Write-Host "Created autodeploy job with ID: $($job.JobId)"
 
 #region Initiate deployer
 $set = New-BcSet
-Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
+Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
 $deployerSplat = @{
     Name          = "Beachhead Deployer"
     GroupId       = $group
@@ -102,7 +102,7 @@ Write-Host "Created job: Beachhead Deployer"
 
 #region Initiate monitor
 $set = New-BcSet
-Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
+Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
 $monitorSplat = @{
     Name          = "Beachhead Monitor"
     GroupId       = $group
