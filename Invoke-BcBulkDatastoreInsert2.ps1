@@ -1,8 +1,10 @@
 Function Invoke-BcBulkDatastoreInsert2 {
     [cmdletbinding()]
     param (
-        [string]$GroupId,
+        [string]$GroupId = (Get-BcAuthenticationCurrentUser).HomeContainerId,
+        [Parameter(Mandatory)]
         [psobject[]]$Data,
+        [Parameter(Mandatory)]
         [string]$IndexName
     )
     $splat = @{

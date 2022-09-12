@@ -1,9 +1,11 @@
 Function Remove-BcDatastoreQuery2 {
     [cmdletbinding()]
     param (
+        [Parameter(Mandatory)]
         [string]$IndexName,
-        [string]$GroupId,
+        [string]$GroupId = (Get-BcAuthenticationCurrentUser).HomeContainerId,
         #example:  @{query=@{match=@{type='agentInstall'}}}
+        [Parameter(Mandatory)]
         [hashtable]$Query
     )
     $splat = @{
