@@ -13,8 +13,6 @@ if ($PSBoundParameters.Keys -notcontains 'UtilityPath') {
 
 & $UtilityPath -N -S $Server who
 
-Pause
-
 $manifests = Get-ChildItem $PSScriptRoot\..\ -Filter manifest.txt -Recurse
 
 foreach ($manifest in $manifests) {
