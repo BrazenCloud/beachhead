@@ -7,6 +7,7 @@ $dirs = foreach ($script in $sc.Keys) {
     }
 }
 $dirs | Select-Object -Unique | ForEach-Object {
+    #Write-Host "Removing '$PSScriptRoot\..\$_\windows\dependencies'"
     Remove-Item $PSScriptRoot\..\$_\windows\dependencies -Force -Recurse
 }
 
@@ -17,6 +18,6 @@ foreach ($script in $sc.Keys) {
             New-Item $PSScriptRoot\..\$dir\windows\dependencies -ItemType Directory | Out-Null
         }
         Write-Host "$script -> $dir"
-        Copy-Item $PSScriptRoot\..\$script $PSScriptRoot\..\$dir\windows\dependencies\$script -Force
+        Copy-Item $PSScriptRoot\functions\$script $PSScriptRoot\..\$dir\windows\dependencies\$script -Force
     }
 }

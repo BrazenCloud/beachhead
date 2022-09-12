@@ -1,16 +1,19 @@
 {
     "Get-BrazenCloudDaemonToken.ps1": [
-        "agentInstall",
-        "engagementStart",
-        "periodicAlternateDeploys",
-        "periodicAssignDeploys",
-        "periodicUpdateCoverage"
+        "installCheck",
+        "assessor",
+        "alternateDeploys",
+        "deployer",
+        "monitor"
     ],
     "Invoke-BcBulkDatastoreInsert2.ps1": [],
     "Invoke-BcQueryDatastore2.ps1": [
-        "engagementStart",
-        "periodicAlternateDeploys",
-        "periodicAssignDeploys",
-        "periodicUpdateCoverage"
+        "assessor",
+        "alternateDeploys",
+        "deployer",
+        "monitor"
+    ],
+    "Get-InstalledSoftware.ps1": [
+        "installCheck"
     ]
 }
