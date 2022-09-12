@@ -21,7 +21,7 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 #endregion
 
 $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
-. .\windows\Invoke-BcQueryDatastore2.ps1
+. .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 
 #region Initiate asset discovery
 $set = New-BcSet

@@ -21,7 +21,7 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 #endregion
 
 $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
-. .\windows\Invoke-BcQueryDatastore2.ps1
+. .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 
 # Get agents to deploy
 $installCheck = (Get-BcRepository -Name 'beachhead:installCheck').Id
