@@ -1,6 +1,7 @@
 {
     "type": "agentInstall",
     "Name": "FireFox",
+    "InstalledName": "Mozilla Firefox*",
     "actions": [
         {
             "action": "deploy:msi",
