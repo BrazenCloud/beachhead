@@ -27,7 +27,7 @@ $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
 $action = Get-BcRepository -Name 'map:discover'
-$jobSplat = @{
+$assetdiscoverSplat = @{
     Name          = 'Beachhead Asset Discovery'
     GroupId       = $group
     EndpointSetId = $set
@@ -43,7 +43,7 @@ $jobSplat = @{
     )
     Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
 }
-$job = New-BcJob @jobSplat
+$job = New-BcJob @assetdiscoverSplat
 
 Write-Host "Created Asset discovery job with ID: $($job.JobId)"
 #endregion
@@ -51,8 +51,8 @@ Write-Host "Created Asset discovery job with ID: $($job.JobId)"
 #region Initiate autodeploy
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
-$action = Get-BcRepository -Name 'runway:deploy'
-$jobSplat = @{
+$action = Get-BcRepository -Name 'deploy:runway'
+$autodeploySplat = @{
     Name          = 'Beachhead Autodeploy'
     GroupId       = $group
     EndpointSetId = $set
@@ -62,13 +62,13 @@ $jobSplat = @{
         @{
             RepositoryActionId = $action.Id
             Settings           = @{
-                "Enrollment Token" = (New-BcEnrollmentSession -Type 'EnrollPersistentRunner' -Expiration (Get-Date).AddDays(30) -GroupId $group -IsOneTime $false).Token
+                "Enrollment Token" = (New-BcEnrollmentSession -Type 'EnrollPersistentRunner' -Expiration (Get-Date).AddDays(30) -GroupId $group -IsOneTime:$false).Token
             }
         }
     )
     Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
 }
-$job = New-BcJob @jobSplat
+$job = New-BcJob @autodeploySplat
 
 Write-Host "Created autodeploy job with ID: $($job.JobId)"
 #endregion
@@ -78,16 +78,20 @@ Write-Host "Created autodeploy job with ID: $($job.JobId)"
 #region Initiate deployer
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
-$jobSplat = @{
+$deployerSplat = @{
     Name          = "Beachhead Deployer"
     GroupId       = $group
     EndpointSetId = $set
     IsEnabled     = $true
     IsHidden      = $false
-    Actions       = (Get-BcRepository -Name 'beachhead:deployer').Id
+    Actions       = @(
+        @{
+            RepositoryActionId = (Get-BcRepository -Name 'beachhead:deployer').Id
+        }
+    )
     Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
 }
-New-BcJob @jobSplat
+New-BcJob @deployerSplat
 
 Write-Host "Created job: Beachhead Deployer"
 
@@ -100,16 +104,20 @@ Write-Host "Created job: Beachhead Deployer"
 #region Initiate monitor
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
-$jobSplat = @{
+$monitorSplat = @{
     Name          = "Beachhead Monitor"
     GroupId       = $group
     EndpointSetId = $set
     IsEnabled     = $true
     IsHidden      = $false
-    Actions       = (Get-BcRepository -Name 'beachhead:monitor').Id
+    Actions       = @(
+        @{
+            RepositoryActionId = (Get-BcRepository -Name 'beachhead:monitor').Id
+        }
+    )
     Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
 }
-New-BcJob @jobSplat
+New-BcJob @monitorSplat
 
 Write-Host "Created job: Beachhead Monitor"
 #endregion
