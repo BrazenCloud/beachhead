@@ -68,4 +68,6 @@ $deployActions = foreach ($atd in $agentInstalls) {
         Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
     }
     $job = New-BcJob @jobSplat
+
+    Write-Host "Created job: Beachead Deploy: $($atd.Name)"
 }
