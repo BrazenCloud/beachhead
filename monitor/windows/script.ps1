@@ -20,6 +20,8 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 #endregion
 
+. .\windows\Invoke-BcQueryDatastore2.ps1
+
 # Get all Runners
 $skip = 0
 $take = 1000
