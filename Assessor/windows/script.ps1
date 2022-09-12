@@ -26,7 +26,6 @@ $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 #region Initiate asset discovery
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.runner_identity | Out-Null
-$action = Get-BcRepository -Name 'map:discover'
 $assetdiscoverSplat = @{
     Name          = 'Beachhead Asset Discovery'
     GroupId       = $group
@@ -35,9 +34,9 @@ $assetdiscoverSplat = @{
     IsHidden      = $false
     Actions       = @(
         @{
-            RepositoryActionId = $action.Id
+            RepositoryActionId = (Get-BcRepository -Name 'map:discover').Id
             Settings           = @{
-                "Update Assets" = $false
+                "Update Assets" = 'true'
             }
         }
     )
