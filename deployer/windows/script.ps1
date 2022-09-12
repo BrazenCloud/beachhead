@@ -39,26 +39,31 @@ while ($runners.Count -lt $r.FilteredCount) {
 }
 
 # foreach agentInstall, get runners lacking the tag and assign the job
-foreach ($ai in $agentInstalls) {
-    $set = New-BcSet
-    foreach ($runner in $runners | Where-Object { $_.Tags -notcontains $ai.InstalledTag }) {
-        Add-BcSetToSet -TargetSetId $set -ObjectIds $runner.Id
+$deployActions = foreach ($atd in $agentsToDeploy) {
+    foreach ($action in $atd.actions) {
+        @{
+            RepositoryActionId = (Get-BcRepository -Name $action.action).Id
+            Settings           = $action.settings
+        }
     }
+    @{
+        RepositoryActionId = $installCheck
+        Settings           = @{
+            Name               = $atd.InstalledName
+            'Tag if installed' = $atd.installedTag
+        }
+    }
+    $set = New-BcSet
+    # add runners to set
+    Add-BcSetToSet -TargetSetId $set -ObjectIds ($runners | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
     $jobSplat = @{
-        Name          = "Beachhead Deploy $($ai.Name)"
+        Name          = "Beachhead Deploy: $($atd.Name)"
         GroupId       = $group
         EndpointSetId = $set
         IsEnabled     = $true
         IsHidden      = $false
-        Actions       = foreach ($action in $ai.actions) {
-            @(
-                @{
-                    RepositoryActionId = (Get-BcRepository -Name $action.action).Id
-                    Settings           = $actions.settings
-                }
-            )
-        }
-        Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow'
+        Actions       = $deployActions
+        Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
     }
-    New-BcJob @jobSplat
+    $job = New-BcJob @jobSplat
 }
