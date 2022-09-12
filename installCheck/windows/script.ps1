@@ -19,3 +19,16 @@ $env:BrazenCloudSessionToken
 $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 #endregion
+
+#region apply tag
+. .\windows\dependencies\Get-InstalledSoftware.ps1
+
+$sw = Get-InstalledSoftware | Where-Object { $_.Name -like $settings.Name }
+if ($null -ne $sw) {
+    $r = Get-BcRunner -RunnerId $settings.runner_identity
+    $set = New-BcSet
+    Add-BcSetToSet -TargetSetId $set -ObjectIds $r.AssetId
+    Add-BcTag -SetId $set -Tags $settings.'Tag if installed'
+}
+
+#endregion

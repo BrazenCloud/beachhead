@@ -1,0 +1,12 @@
+[
+    {
+        "Name": "Name",
+        "Type": 0,
+        "IsOptional": false
+    },
+    {
+        "Name": "Tag if installed",
+        "Type": 0,
+        "IsOptional": false
+    }
+]
