@@ -27,7 +27,7 @@ $agentInstalls = Invoke-BcQueryDataStore2 -GroupId $group -Query @{query_string 
 
 # Get all runners in current group
 $skip = 0
-$take = 1
+$take = 1000
 $r = Invoke-BcQueryRunner -MembershipCheckId $group -Take $take -Skip $skip -IncludeSubgroups:$false -SortDirection 1
 [BrazenCloudSdk.PowerShell.Models.IRunnerQueryView[]]$runners = $r.Items
 while ($runners.Count -lt $r.FilteredCount) {
