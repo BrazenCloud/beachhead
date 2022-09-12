@@ -19,3 +19,52 @@ $env:BrazenCloudSessionToken
 $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 #endregion
+
+# Get all Runners
+$skip = 0
+$take = 1000
+$r = Invoke-BcQueryRunner -MembershipCheckId $group -Take $take -Skip $skip -IncludeSubgroups:$false -SortDirection 1
+[BrazenCloudSdk.PowerShell.Models.IRunnerQueryView[]]$runners = $r.Items
+while ($runners.Count -lt $r.FilteredCount) {
+    $skip = $skip + $take
+    Write-Host 'query'
+    Write-Host "Skip: $skip"
+    $r = Invoke-BcQueryRunner -MembershipCheckId $group -Take $take -Skip $skip -IncludeSubgroups:$false -SortDirection 1
+    [BrazenCloudSdk.PowerShell.Models.IRunnerQueryView[]]$runners += $r.Items
+}
+
+#calculate runner coverage
+$skip = 0
+$take = 1
+$query = @{
+    includeSubgroups = $true
+    skip             = $skip
+    take             = $take
+    sortDirection    = 0
+    filter           = @{
+        Left     = 'OSName'
+        Operator = '^:'
+        Right    = 'Microsoft Windows'
+    }
+}
+$endpointAssets = Invoke-BcQueryEndpointAsset -Query $query
+[BrazenCloudSdk.PowerShell.Models.IEndpointAssetQueryView[]]$endpointAssets = $ea.Items
+while ($endpointAssets.Count -lt $ea.FilteredCount) {
+    $query.skip = $skip + $take
+    $ea = Invoke-BcQueryEndpointAsset -Query $query
+    [BrazenCloudSdk.PowerShell.Models.IEndpointAssetQueryView[]]$endpointAssets += $ea.Items
+}
+
+$out = @{
+    Runners        = $runners.Count
+    EndpointAssets = $endpointAssets.Count
+}
+
+#foreach agent deploy, calculate coverage
+$agentInstalls = Invoke-BcQueryDataStore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
+
+foreach ($ai in $agentInstalls) {
+    $out["$($ai.Name.Replace(' ',''))Installs"] = $runners | Where-Object { $_.Tags -contains $ai.InstalledTag }
+}
+$out | ConvertTo-Json
+$out | ConvertTo-Json | Out-File .\results\coverage.json
