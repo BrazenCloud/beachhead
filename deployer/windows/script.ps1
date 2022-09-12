@@ -58,7 +58,7 @@ foreach ($ai in $agentInstalls) {
                 }
             )
         }
-        Schedule      = New-RwJobScheduleObject -ScheduleType 'RunNow'
+        Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow'
     }
     New-BcJob @jobSplat
 }
