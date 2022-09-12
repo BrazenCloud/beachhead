@@ -40,7 +40,7 @@ $jobSplat = @{
             }
         }
     )
-    Schedule      = New-RwJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
+    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
 }
 $job = New-BcJob @jobSplat
 
@@ -65,7 +65,7 @@ $jobSplat = @{
             }
         }
     )
-    Schedule      = New-RwJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
+    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
 }
 $job = New-BcJob @jobSplat
 
@@ -74,7 +74,40 @@ Write-Host "Created autodeploy job with ID: $($job.JobId)"
 
 #region Initiate periodic jobs
 
-#region Initiate periodic agent query and deploy job
+#region Initiate deployer
+$agentsToDeploy = Invoke-BcQueryDatastore2 -IndexName 'beachheadconfig' -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -GroupId $group
+$installCheck = (Get-BcRepository -Name 'beachhead:installCheck').Id
+$allRunners = (Get-BcRunner).Items
+
+$deployActions = foreach ($atd in $agentsToDeploy) {
+    foreach ($action in $atd.actions) {
+        @{
+            RepositoryActionId = (Get-BcRepository -Name $action.action).Id
+            Settings           = $action.settings
+        }
+    }
+    @{
+        RepositoryActionId = $installCheck
+        Settings           = @{
+            Name               = $atd.InstalledName
+            'Tag if installed' = $atd.installedTag
+        }
+    }
+    $set = New-BcSet
+    # add runners to set
+    Add-BcSetToSet -TargetSetId $set -ObjectIds ($allRunners | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
+    $jobSplat = @{
+        Name          = 'Beachhead Deploy Agents'
+        GroupId       = $group
+        EndpointSetId = $set
+        IsEnabled     = $true
+        IsHidden      = $false
+        Actions       = $deployActions
+        Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
+    }
+    $job = New-BcJob @jobSplat
+}
+
 
 #endregion
 
@@ -82,7 +115,7 @@ Write-Host "Created autodeploy job with ID: $($job.JobId)"
 
 #endregion
 
-#region Initiate coverage update
+#region Initiate monitor
 
 #endregion
 
