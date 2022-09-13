@@ -23,3 +23,6 @@ foreach ($manifest in $manifests) {
 
     & $UtilityPath -q -N -S $Server build -i $($manifest.FullName) -o "$($namespace.Replace(':','-')).apt" -p $namespace
 }
+
+Get-ChildItem *.apt | ForEach-Object { Remove-Item $_.FullName -Force }
+Get-Item .\logs | Remove-Item -Force -Recurse
