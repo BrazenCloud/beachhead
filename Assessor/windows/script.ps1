@@ -25,6 +25,7 @@ $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 . .\windews\dependencies\subnets.ps1
 
 # apply job tags
+$set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.job_id
 Add-BcTag -SetId $set -Tags 'Beachhead', 'Assessor'
 
