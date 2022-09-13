@@ -43,6 +43,10 @@ $assetdiscoverSplat = @{
     Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
 }
 $job = New-BcJob @assetdiscoverSplat
+$set = New-BcSet
+Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
+Add-BcTag -SetId $set -Tags 'Beachhead', 'AssetDiscovery'
+
 
 Write-Host "Created Asset discovery job with ID: $($job.JobId)"
 #endregion
@@ -68,6 +72,9 @@ $autodeploySplat = @{
     Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
 }
 $job = New-BcJob @autodeploySplat
+$set = New-BcSet
+Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
+Add-BcTag -SetId $set -Tags 'Beachhead', 'AutoDeploy'
 
 Write-Host "Created autodeploy job with ID: $($job.JobId)"
 #endregion
@@ -91,6 +98,9 @@ $deployerSplat = @{
     Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
 }
 New-BcJob @deployerSplat
+$set = New-BcSet
+Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
+Add-BcTag -SetId $set -Tags 'Beachhead', 'Deployer'
 
 Write-Host "Created job: Beachhead Deployer"
 
@@ -117,6 +127,9 @@ $monitorSplat = @{
     Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
 }
 New-BcJob @monitorSplat
+$set = New-BcSet
+Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
+Add-BcTag -SetId $set -Tags 'Beachhead', 'Monitor'
 
 Write-Host "Created job: Beachhead Monitor"
 #endregion
