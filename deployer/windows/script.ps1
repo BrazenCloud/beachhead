@@ -35,9 +35,13 @@ $endpointAssets = Get-BcEndpointAssetwRunner
 foreach ($atd in $agentInstalls) {
     $deployActions = & {
         foreach ($action in $atd.actions) {
+            $settingsHt = @{}
+            foreach ($prop in $action.settings.psobject.Properties.Name) {
+                $settingsHt[$prop] = $action.Settings.$prop
+            }
             @{
                 RepositoryActionId = (Get-BcRepository -Name $action.action).Id
-                Settings           = $action.settings
+                Settings           = $settingsHt
             }
         }
         @{
@@ -52,7 +56,7 @@ foreach ($atd in $agentInstalls) {
     # add runners to set
     Add-BcSetToSet -TargetSetId $set -ObjectIds ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
     $jobSplat = @{
-        Name          = "Beachhead Deploy: $($atd.Name)"
+        Name          = "Beachhead Deploy test: $($atd.Name)"
         GroupId       = $group
         EndpointSetId = $set
         IsEnabled     = $true
