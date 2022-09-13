@@ -20,6 +20,7 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 #endregion
 
+$group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 
 # Get all Runners
