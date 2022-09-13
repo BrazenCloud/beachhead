@@ -24,6 +24,10 @@ $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 . .\windews\dependencies\subnets.ps1
 
+# apply job tags
+Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.job_id
+Add-BcTag -SetId $set -Tags 'Beachhead', 'Assessor'
+
 #region Initiate asset discovery
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
