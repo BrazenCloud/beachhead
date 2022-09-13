@@ -97,7 +97,7 @@ $deployerSplat = @{
     )
     Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
 }
-New-BcJob @deployerSplat
+$job = New-BcJob @deployerSplat
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
 Add-BcTag -SetId $set -Tags 'Beachhead', 'Deployer'
