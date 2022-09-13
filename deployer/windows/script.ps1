@@ -32,18 +32,20 @@ $agentInstalls = Invoke-BcQueryDataStore2 -GroupId $group -Query @{query_string 
 $endpointAssets = Get-BcEndpointAssetwRunner
 
 # foreach agentInstall, get runners lacking the tag and assign the job
-$deployActions = foreach ($atd in $agentInstalls) {
-    foreach ($action in $atd.actions) {
-        @{
-            RepositoryActionId = (Get-BcRepository -Name $action.action).Id
-            Settings           = $action.settings
+foreach ($atd in $agentInstalls) {
+    $deployActions = & {
+        foreach ($action in $atd.actions) {
+            @{
+                RepositoryActionId = (Get-BcRepository -Name $action.action).Id
+                Settings           = $action.settings
+            }
         }
-    }
-    @{
-        RepositoryActionId = $installCheck
-        Settings           = @{
-            Name               = $atd.InstalledName
-            'Tag if installed' = $atd.installedTag
+        @{
+            RepositoryActionId = $installCheck
+            Settings           = @{
+                Name               = $atd.InstalledName
+                'Tag if installed' = $atd.installedTag
+            }
         }
     }
     $set = New-BcSet
