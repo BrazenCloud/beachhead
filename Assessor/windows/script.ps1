@@ -22,6 +22,7 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
+. .\windews\dependencies\subnets.ps1
 
 #region Initiate asset discovery
 $set = New-BcSet
@@ -52,9 +53,13 @@ Write-Host "Created Asset discovery job with ID: $($job.JobId)"
 #endregion
 
 #region Initiate autodeploy
+# https://docs.microsoft.com/en-us/powershell/module/nettcpip/get-netroute?view=windowsserver2022-ps#example-5-get-ip-routes-to-non-local-destinations
+$internetRoute = Get-NetRoute | Where-Object -FilterScript { $_.NextHop -Ne "::" } | Where-Object -FilterScript { $_.NextHop -Ne "0.0.0.0" } | Where-Object -FilterScript { ($_.NextHop.SubString(0, 6) -Ne "fe80::") } | Sort-Object InterfaceMetric | Select-Object -First 1
+$ipconfig = Get-NetIPConfiguration -InterfaceIndex $internetRoute.InterfaceIndex
+$subnet = Get-IPv4Subnet -IPAddress $ipconfig.IPv4Address.IPAddress -PrefixLength $ipconfig.IPv4Address.PrefixLength
+
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
-$action = Get-BcRepository -Name 'deploy:runway'
 $autodeploySplat = @{
     Name          = 'Beachhead Autodeploy'
     GroupId       = $group
@@ -63,9 +68,10 @@ $autodeploySplat = @{
     IsHidden      = $false
     Actions       = @(
         @{
-            RepositoryActionId = $action.Id
+            RepositoryActionId = (Get-BcRepository -Name 'deploy:runway').Id
             Settings           = @{
                 "Enrollment Token" = (New-BcEnrollmentSession -Type 'EnrollPersistentRunner' -Expiration (Get-Date).AddDays(30) -GroupId $group -IsOneTime:$false).Token
+                "IP Range"         = "$($subnet.FirstHostIP)-$($subnet.LastHostIP)"
             }
         }
     )

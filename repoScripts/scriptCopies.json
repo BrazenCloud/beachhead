@@ -18,5 +18,8 @@
     ],
     "Get-BcEndpointAssetwRunner.ps1": [
         "deployer"
+    ],
+    "subnets.ps1": [
+        "assessor"
     ]
 }
