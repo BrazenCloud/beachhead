@@ -15,5 +15,8 @@
     ],
     "Get-InstalledSoftware.ps1": [
         "installCheck"
+    ],
+    "Get-BcEndpointAssetwRunner.ps1": [
+        "deployer"
     ]
 }

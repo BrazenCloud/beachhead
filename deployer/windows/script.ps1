@@ -22,23 +22,14 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
+. .\windows\dependencies\Get-BcEndpointAssetwRunner.ps1
 
 # Get agents to deploy
 $installCheck = (Get-BcRepository -Name 'beachhead:installCheck').Id
 $agentInstalls = Invoke-BcQueryDataStore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
 
-# Get all runners in current group
-$skip = 0
-$take = 1000
-$r = Invoke-BcQueryRunner -MembershipCheckId $group -Take $take -Skip $skip -IncludeSubgroups:$false -SortDirection 1
-[BrazenCloudSdk.PowerShell.Models.IRunnerQueryView[]]$runners = $r.Items
-while ($runners.Count -lt $r.FilteredCount) {
-    $skip = $skip + $take
-    Write-Host 'query'
-    Write-Host "Skip: $skip"
-    $r = Invoke-BcQueryRunner -MembershipCheckId $group -Take $take -Skip $skip -IncludeSubgroups:$false -SortDirection 1
-    [BrazenCloudSdk.PowerShell.Models.IRunnerQueryView[]]$runners += $r.Items
-}
+# Get all endpointassets w/runner in current group
+$endpointAssets = Get-BcEndpointAssetwRunner
 
 # foreach agentInstall, get runners lacking the tag and assign the job
 $deployActions = foreach ($atd in $agentInstalls) {
@@ -57,7 +48,7 @@ $deployActions = foreach ($atd in $agentInstalls) {
     }
     $set = New-BcSet
     # add runners to set
-    Add-BcSetToSet -TargetSetId $set -ObjectIds ($runners | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
+    Add-BcSetToSet -TargetSetId $set -ObjectIds ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
     $jobSplat = @{
         Name          = "Beachhead Deploy: $($atd.Name)"
         GroupId       = $group
