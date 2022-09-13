@@ -126,7 +126,7 @@ $monitorSplat = @{
     )
     Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
 }
-New-BcJob @monitorSplat
+$job = New-BcJob @monitorSplat
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
 Add-BcTag -SetId $set -Tags 'Beachhead', 'Monitor'
