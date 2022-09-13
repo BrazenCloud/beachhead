@@ -22,7 +22,7 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
-. .\windews\dependencies\subnets.ps1
+. .\windows\dependencies\subnets.ps1
 
 # apply job tags
 $set = New-BcSet
