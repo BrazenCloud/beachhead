@@ -67,7 +67,7 @@ $out = @{
 $agentInstalls = Invoke-BcQueryDataStore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
 
 foreach ($ai in $agentInstalls) {
-    $out["$($ai.Name.Replace(' ',''))Installs"] = $runners | Where-Object { $_.Tags -contains $ai.InstalledTag }
+    $out["$($ai.Name.Replace(' ',''))Installs"] = ($runners | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
 }
 $out | ConvertTo-Json
 $out | ConvertTo-Json | Out-File .\results\coverage.json
