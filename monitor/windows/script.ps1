@@ -22,6 +22,7 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
+. .\windows\dependencies\Invoke-BcBulkDatastoreInsert2.ps1
 
 # Get all Runners
 $skip = 0
@@ -38,7 +39,7 @@ while ($runners.Count -lt $r.FilteredCount) {
 
 #calculate runner coverage
 $skip = 0
-$take = 1
+$take = 1000
 $query = @{
     includeSubgroups = $true
     skip             = $skip
@@ -50,24 +51,64 @@ $query = @{
         Right    = 'Microsoft Windows'
     }
 }
-$endpointAssets = Invoke-BcQueryEndpointAsset -Query $query
+$ea = Invoke-BcQueryEndpointAsset -Query $query
 [BrazenCloudSdk.PowerShell.Models.IEndpointAssetQueryView[]]$endpointAssets = $ea.Items
 while ($endpointAssets.Count -lt $ea.FilteredCount) {
-    $query.skip = $skip + $take
+    $query.skip = $query.skip + $take
     $ea = Invoke-BcQueryEndpointAsset -Query $query
     [BrazenCloudSdk.PowerShell.Models.IEndpointAssetQueryView[]]$endpointAssets += $ea.Items
 }
 
-$out = @{
+$coverageSummary = @{
     Runners        = $runners.Count
     EndpointAssets = $endpointAssets.Count
 }
 
+$coverageSummary = @{
+    LastUpdate          = (Get-Date)
+    BrazenCloudCoverage = $([math]::round($($runners.Count / $endpointAssets.Count), 2) * 100)
+    counts              = @{
+        Runners        = $runners.Count
+        EndpointAssets = $endpointAssets.Count
+    }
+    missing             = @{
+        Runners = $endpointAssets | Where-Object { -not $_.HasRunner }
+    }
+}
+
 #foreach agent deploy, calculate coverage
 $agentInstalls = Invoke-BcQueryDataStore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
-
 foreach ($ai in $agentInstalls) {
-    $out["$($ai.Name.Replace(' ',''))Installs"] = ($runners | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
+    $installCount = ($endpointAssets | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
+    $coverageSummary['counts']["$($ai.Name.Replace(' ',''))Installs"] = $installCount
+    $coverageSummary["$($ai.Name.Replace(' ',''))Coverage"] = $([math]::round($($installCount / $endpointAssets.Count), 2) * 100)
+    $coverageSummary['missing']["$($ai.Name.Replace(' ',''))Installs"] = @($endpointAssets | Where-Object { $_.Tags -notcontains $ai.InstalledTag } | ForEach-Object {
+            @{
+                Name       = $_.Name
+                IPAddress  = $_.LastIPAddress
+                MacAddress = $_.PreferredMacAddress
+            }
+        })
+    
+    Select-Object Name, LastIPAddress, PreferredMacAddress
 }
-$out | ConvertTo-Json
-$out | ConvertTo-Json | Out-File .\results\coverage.json
+$coverageSummary | ConvertTo-Json -Depth 10
+
+$coverageSummary | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReportSummary.json
+
+$coverageSummary['type'] = 'coverageReportSummary'
+Invoke-BcBulkDatastoreInsert2 -GroupId $group -IndexName 'beachheadconfig' -Data $coverageSummary
+
+$coverageReport = foreach ($ea in $endpointAssets) {
+    $ht = @{
+        Type            = 'coverageReport'
+        OperatingSystem = $ea.OSName
+        BcAgent         = $ea.HasRunner
+    }
+    foreach ($ai in $agentInstalls) {
+        $ht["$($ai.Name.Replace(' ',''))Installed"] = $ea.Tags.Contains($ai.InstalledTag)
+    }
+}
+Remove-BcDatastoreQuery2 -IndexName 'beachheadconfig' -Query @{query = @{match = @{type = 'coverageReport' } } }
+Invoke-BcBulkDatastoreInsert2 -GroupId $group -IndexName 'beachheadconfig' -Data $coverageReport
+$coverageReport | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReport.json
