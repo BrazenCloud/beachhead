@@ -61,11 +61,6 @@ while ($endpointAssets.Count -lt $ea.FilteredCount) {
 }
 
 $coverageSummary = @{
-    Runners        = $runners.Count
-    EndpointAssets = $endpointAssets.Count
-}
-
-$coverageSummary = @{
     LastUpdate          = (Get-Date)
     BrazenCloudCoverage = $([math]::round($($runners.Count / $endpointAssets.Count), 2) * 100)
     counts              = @{
@@ -109,6 +104,7 @@ $coverageReport = foreach ($ea in $endpointAssets) {
     foreach ($ai in $agentInstalls) {
         $ht["$($ai.Name.Replace(' ',''))Installed"] = $ea.Tags.Contains($ai.InstalledTag)
     }
+    $ht
 }
 Remove-BcDatastoreQuery2 -IndexName 'beachheadconfig' -Query @{query = @{match = @{type = 'coverageReport' } } }
 Invoke-BcBulkDatastoreInsert2 -GroupId $group -IndexName 'beachheadconfig' -Data $coverageReport
