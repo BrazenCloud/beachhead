@@ -64,7 +64,7 @@ while ($endpointAssets.Count -lt $ea.FilteredCount) {
 }
 
 $coverageSummary = @{
-    LastUpdate          = (Get-Date)
+    LastUpdate          = (Get-Date).ToString()
     BrazenCloudCoverage = $([math]::round($($runners.Count / $endpointAssets.Count), 2) * 100)
     counts              = @{
         Runners        = $runners.Count
