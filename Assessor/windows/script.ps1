@@ -80,7 +80,7 @@ $autodeploySplat = @{
             }
         }
     )
-    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
+    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes $settings.'Autodeploy Interval'
 }
 $job = New-BcJob @autodeploySplat
 $set = New-BcSet
@@ -106,7 +106,7 @@ $deployerSplat = @{
             RepositoryActionId = (Get-BcRepository -Name 'beachhead:deployer').Id
         }
     )
-    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
+    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes $settings.'Deployer Interval'
 }
 $job = New-BcJob @deployerSplat
 $set = New-BcSet
@@ -135,7 +135,7 @@ $monitorSplat = @{
             RepositoryActionId = (Get-BcRepository -Name 'beachhead:monitor').Id
         }
     )
-    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 20
+    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes $settings.'Monitor Interval'
 }
 $job = New-BcJob @monitorSplat
 $set = New-BcSet

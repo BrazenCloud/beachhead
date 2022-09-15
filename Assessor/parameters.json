@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "Monitor Interval",
+        "Type": 1,
+        "DefaultValue": 20,
+        "IsOptional": false
+    },
+    {
+        "Name": "Deployer Interval",
+        "Type": 1,
+        "DefaultValue": 20,
+        "IsOptional": false
+    },
+    {
+        "Name": "Autodeploy Interval",
+        "Type": 1,
+        "DefaultValue": 20,
+        "IsOptional": false
+    }
+]
