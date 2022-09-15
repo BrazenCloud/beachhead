@@ -6,7 +6,9 @@
         "deployer",
         "monitor"
     ],
-    "Invoke-BcBulkDatastoreInsert2.ps1": [],
+    "Invoke-BcBulkDatastoreInsert2.ps1": [
+        "monitor"
+    ],
     "Invoke-BcQueryDatastore2.ps1": [
         "assessor",
         "alternateDeploys",
@@ -21,5 +23,8 @@
     ],
     "subnets.ps1": [
         "assessor"
+    ],
+    "Remove-BcDatastoreQuery2.ps1": [
+        "monitor"
     ]
 }

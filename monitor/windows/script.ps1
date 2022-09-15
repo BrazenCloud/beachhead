@@ -23,6 +23,7 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 . .\windows\dependencies\Invoke-BcBulkDatastoreInsert2.ps1
+. .\windows\dependencies\Remove-BcDatastoreQuery2
 
 # Get all Runners
 $skip = 0
