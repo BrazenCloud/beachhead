@@ -100,9 +100,9 @@ Invoke-BcBulkDatastoreInsert2 -GroupId $group -IndexName 'beachheadconfig' -Data
 
 $coverageReport = foreach ($ea in $endpointAssets) {
     $ht = @{
-        Type            = 'coverageReport'
-        OperatingSystem = $ea.OSName
-        BcAgent         = $ea.HasRunner
+        type            = 'coverageReport'
+        operatingSystem = $ea.OSName
+        bcAgent         = $ea.HasRunner
     }
     foreach ($ai in $agentInstalls) {
         $ht["$($ai.Name.Replace(' ',''))Installed"] = $ea.Tags.Contains($ai.InstalledTag)
