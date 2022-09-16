@@ -58,7 +58,7 @@ foreach ($atd in $agentInstalls) {
         # add runners to set
         Add-BcSetToSet -TargetSetId $set -ObjectIds ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
         $jobSplat = @{
-            Name          = "Beachhead Deploy test: $($atd.Name)"
+            Name          = "Beachhead Deploy: $($atd.Name)"
             GroupId       = $group
             EndpointSetId = $set
             IsEnabled     = $true
