@@ -33,41 +33,46 @@ $endpointAssets = Get-BcEndpointAssetwRunner
 
 # foreach agentInstall, get runners lacking the tag and assign the job
 foreach ($atd in $agentInstalls) {
-    $deployActions = & {
-        foreach ($action in $atd.actions) {
-            $settingsHt = @{}
-            foreach ($prop in $action.settings.psobject.Properties.Name) {
-                $settingsHt[$prop] = $action.Settings.$prop
+    $toAssign = ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
+    if ($toAssign.Count -gt 0) {
+        $deployActions = & {
+            foreach ($action in $atd.actions) {
+                $settingsHt = @{}
+                foreach ($prop in $action.settings.psobject.Properties.Name) {
+                    $settingsHt[$prop] = $action.Settings.$prop
+                }
+                @{
+                    RepositoryActionId = (Get-BcRepository -Name $action.action).Id
+                    Settings           = $settingsHt
+                }
             }
             @{
-                RepositoryActionId = (Get-BcRepository -Name $action.action).Id
-                Settings           = $settingsHt
+                RepositoryActionId = $installCheck
+                Settings           = @{
+                    Name               = $atd.InstalledName
+                    'Tag if installed' = $atd.installedTag
+                }
             }
         }
-        @{
-            RepositoryActionId = $installCheck
-            Settings           = @{
-                Name               = $atd.InstalledName
-                'Tag if installed' = $atd.installedTag
-            }
+        $set = New-BcSet
+        # add runners to set
+        Add-BcSetToSet -TargetSetId $set -ObjectIds ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
+        $jobSplat = @{
+            Name          = "Beachhead Deploy test: $($atd.Name)"
+            GroupId       = $group
+            EndpointSetId = $set
+            IsEnabled     = $true
+            IsHidden      = $false
+            Actions       = $deployActions
+            Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
         }
-    }
-    $set = New-BcSet
-    # add runners to set
-    Add-BcSetToSet -TargetSetId $set -ObjectIds ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
-    $jobSplat = @{
-        Name          = "Beachhead Deploy test: $($atd.Name)"
-        GroupId       = $group
-        EndpointSetId = $set
-        IsEnabled     = $true
-        IsHidden      = $false
-        Actions       = $deployActions
-        Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
-    }
-    $job = New-BcJob @jobSplat
-    $set = New-BcSet
-    Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
-    Add-BcTag -SetId $set -Tags 'Beachhead', 'AgentInstall'
+        $job = New-BcJob @jobSplat
+        $set = New-BcSet
+        Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
+        Add-BcTag -SetId $set -Tags 'Beachhead', 'AgentInstall'
 
-    Write-Host "Created job: Beachead Deploy: $($atd.Name)"
+        Write-Host "Created job: Beachead Deploy: $($atd.Name)"
+    } else {
+        Write-Host "No agents need $($atd.Name)"
+    }
 }
