@@ -63,8 +63,10 @@ while ($endpointAssets.Count -lt $ea.FilteredCount) {
     [BrazenCloudSdk.PowerShell.Models.IEndpointAssetQueryView[]]$endpointAssets += $ea.Items
 }
 
+$lastUpdate = (Get-Date).ToString()
+
 $coverageSummary = @{
-    LastUpdate          = (Get-Date).ToString()
+    LastUpdate          = $lastUpdate
     BrazenCloudCoverage = $([math]::round($($runners.Count / $endpointAssets.Count), 2) * 100)
     counts              = @{
         Runners        = $runners.Count
@@ -86,6 +88,7 @@ foreach ($ai in $agentInstalls) {
                 Name       = $_.Name
                 IPAddress  = $_.LastIPAddress
                 MacAddress = $_.PreferredMacAddress
+                LastUpdate = $lastUpdate
             }
         })
     
@@ -105,7 +108,7 @@ $coverageReport = foreach ($ea in $endpointAssets) {
         bcAgent         = $ea.HasRunner
     }
     foreach ($ai in $agentInstalls) {
-        $ht["$($ai.Name.Replace(' ',''))Installed"] = $ea.Tags.Contains($ai.InstalledTag)
+        $ht["$($ai.Name.Replace(' ',''))Installed"] = $ea.Tags -contains ($ai.InstalledTag)
     }
     $ht
 }
