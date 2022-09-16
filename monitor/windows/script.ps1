@@ -26,7 +26,7 @@ $group = (Get-BcAuthenticationCurrentUser).HomeContainerId
 . .\windows\dependencies\Remove-BcDatastoreQuery2
 
 # Cleane report
-Remove-BcDatastoreQuery2 -IndexName 'beachheadconfig' -Query @{query = @{match = @{Type = 'coverageReport' } } }
+Remove-BcDatastoreQuery2 -IndexName 'beachheadcoverage' -Query @{query = @{match = @{Type = 'coverageReport' } } }
 
 # Get all Runners
 $skip = 0
@@ -96,7 +96,7 @@ $coverageSummary | ConvertTo-Json -Depth 10
 $coverageSummary | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReportSummary.json
 
 $coverageSummary['type'] = 'coverageReportSummary'
-Invoke-BcBulkDatastoreInsert2 -GroupId $group -IndexName 'beachheadconfig' -Data $coverageSummary
+Invoke-BcBulkDatastoreInsert2 -GroupId $group -IndexName 'beachheadcoverage' -Data $coverageSummary
 
 $coverageReport = foreach ($ea in $endpointAssets) {
     $ht = @{
@@ -109,5 +109,5 @@ $coverageReport = foreach ($ea in $endpointAssets) {
     }
     $ht
 }
-Invoke-BcBulkDatastoreInsert2 -GroupId $group -IndexName 'beachheadconfig' -Data $coverageReport
+Invoke-BcBulkDatastoreInsert2 -GroupId $group -IndexName 'beachheadcoverage' -Data $coverageReport
 $coverageReport | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReport.json
