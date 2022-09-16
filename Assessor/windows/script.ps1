@@ -20,7 +20,7 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 #endregion
 
-$group = (Get-BcAuthenticationCurrentUser).HomeContainerId
+$group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 . .\windows\dependencies\subnets.ps1
 

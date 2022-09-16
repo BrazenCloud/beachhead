@@ -20,13 +20,14 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 #endregion
 
-$group = (Get-BcAuthenticationCurrentUser).HomeContainerId
+$group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 . .\windows\dependencies\Invoke-BcBulkDatastoreInsert2.ps1
 . .\windows\dependencies\Remove-BcDatastoreQuery2
 
 # Cleane report
-Remove-BcDatastoreQuery2 -IndexName 'beachheadcoverage' -Query @{query = @{match = @{Type = 'coverageReport' } } }
+Remove-BcDatastoreQuery2 -IndexName 'beachheadcoverage' -Query @{query = @{match = @{type = 'coverageReport' } } }
+Remove-BcDatastoreQuery2 -IndexName 'beachheadcoveragesummary' -Query @{query = @{match = @{type = 'coverageSummary' } } }
 
 # Get all Runners
 $skip = 0
