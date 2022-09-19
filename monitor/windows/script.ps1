@@ -25,9 +25,9 @@ $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0
 . .\windows\dependencies\Invoke-BcBulkDatastoreInsert2.ps1
 . .\windows\dependencies\Remove-BcDatastoreQuery2
 
-# Cleane report
-Remove-BcDatastoreQuery2 -IndexName 'beachheadcoverage' -Query @{query = @{match = @{type = 'coverageReport' } } }
-Remove-BcDatastoreQuery2 -IndexName 'beachheadcoveragesummary' -Query @{query = @{match = @{type = 'coverageSummary' } } }
+# Clean indexes
+Remove-BcDatastoreQuery2 -IndexName 'beachheadcoverage' -Query @{query = @{match_all = @{} } }
+Remove-BcDatastoreQuery2 -IndexName 'beachheadcoveragesummary' -Query @{query = @{match_all = @{} } }
 
 # Get all Runners
 $skip = 0
@@ -99,12 +99,11 @@ $coverageSummary | ConvertTo-Json -Depth 10
 
 $coverageSummary | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReportSummary.json
 
-$coverageSummary['type'] = 'coverageReportSummary'
-Invoke-BcBulkDatastoreInsert2 -GroupId $group -IndexName 'beachheadcoverage' -Data $coverageSummary
+Invoke-BcBulkDatastoreInsert2 -GroupId $group -IndexName 'beachheadcoveragesummary' -Data $coverageSummary
 
 $coverageReport = foreach ($ea in $endpointAssets) {
     $ht = @{
-        type            = 'coverageReport'
+        name            = $ea.Name
         operatingSystem = $ea.OSName
         bcAgent         = $ea.HasRunner
     }
