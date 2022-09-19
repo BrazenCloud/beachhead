@@ -50,20 +50,22 @@ You can do this via `services.msc`.
 Each agent that you need deployed via BrazenCloud Beachhead needs to have a configuration. Here is an example that uses Firefox:
 
 ```json
-{
-    "type": "agentInstall",
-    "Name": "FireFox",
-    "InstalledName": "Mozilla Firefox*",
-    "actions": [
-        {
-            "name": "deploy:msi",
-            "settings": {
-                "MSI URL": "https://brazenclouddlsstaging.z20.web.core.windows.net/Firefox%20Setup%20104.0.1.msi"
+[
+    {
+        "type": "agentInstall",
+        "Name": "FireFox",
+        "InstalledName": "Mozilla Firefox*",
+        "actions": [
+            {
+                "name": "deploy:msi",
+                "settings": {
+                    "MSI URL": "https://brazenclouddlsstaging.z20.web.core.windows.net/Firefox%20Setup%20104.0.1.msi"
+                }
             }
-        }
-    ],
-    "installedTag": "firefox:true"
-}
+        ],
+        "installedTag": "firefox:true"
+    }
+]
 ```
 
 - **type**: For agent installation configs, this should always be: `agentInstall`
@@ -73,6 +75,22 @@ Each agent that you need deployed via BrazenCloud Beachhead needs to have a conf
   - **name**: The name of the action to use
   - **settings**: An object containing each parameter name with the value to use.
 - **installedTag**: The tag to apply to the asset in BrazenCloud when the agent has been installed.
+
+With the config written, it needs to be put into the `beachheadconfig` index in the newly created group. This can be done using the API, most easily using the [PowerShell SDK](https://github.com/brazencloud/powershell) and the included [Invoke-BcBulkDatastoreInsert2](repoScripts/functions/Invoke-BcBulkDatastoreInsert2.ps1) function:
+
+```powershell
+# load up the Invoke-BcBulkDatastoreInsert2 function
+. ./repoScripts/functions/Invoke-BcBulkDatastoreInsert2.ps1
+
+# Get the data from your json file
+$data = Get-Content ./sampleConfig.json | ConvertFrom-Json
+
+# Get the group of the IR group
+$groupId = ((Get-BcGroup).Items | ?{$_.Name -eq 'Customer 1'}).Id
+
+# Add the config to the index
+Invoke-BcBulkDatastoreInsert2 -Data $data -IndexName 'beachheadconfig' -GroupId $groupId
+```
 
 ## Tracking coverage
 
