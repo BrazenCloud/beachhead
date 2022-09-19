@@ -42,7 +42,7 @@ foreach ($atd in $agentInstalls) {
                     $settingsHt[$prop] = $action.Settings.$prop
                 }
                 @{
-                    RepositoryActionId = (Get-BcRepository -Name $action.action).Id
+                    RepositoryActionId = (Get-BcRepository -Name $action.name).Id
                     Settings           = $settingsHt
                 }
             }
