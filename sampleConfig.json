@@ -1,14 +1,30 @@
-{
-    "type": "agentInstall",
-    "Name": "FireFox",
-    "InstalledName": "Mozilla Firefox*",
-    "actions": [
-        {
-            "action": "deploy:msi",
-            "settings": {
-                "MSI URL": "https://brazenclouddlsstaging.z20.web.core.windows.net/Firefox%20Setup%20104.0.1.msi"
+[
+    {
+        "type": "agentInstall",
+        "Name": "FireFox",
+        "InstalledName": "Mozilla Firefox*",
+        "actions": [
+            {
+                "name": "deploy:msi",
+                "settings": {
+                    "MSI URL": "https://brazenclouddlsstaging.z20.web.core.windows.net/Firefox%20Setup%20104.0.1.msi"
+                }
             }
-        }
-    ],
-    "installedTag": "firefox:true"
-}
+        ],
+        "installedTag": "firefox:true"
+    },
+    {
+        "type": "agentInstall",
+        "Name": "Edge",
+        "InstalledName": "Microsoft Edge",
+        "actions": [
+            {
+                "name": "deploy:msi",
+                "settings": {
+                    "MSI URL": "https://brazenclouddlsstaging.z20.web.core.windows.net/MicrosoftEdgeEnterpriseX64.msi"
+                }
+            }
+        ],
+        "installedTag": "edge:true"
+    }
+]
