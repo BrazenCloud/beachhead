@@ -1,8 +1,10 @@
-Function Enroll-BcRunner {
+Function Get-BcRunnerEnrollmentDetails {
     [cmdletbinding()]
     param (
+        [Parameter(Mandatory)]
         [string]$UtilityPath,
         [string]$Server = 'staging.brazencloud.com',
+        [Parameter(Mandatory)]
         [string]$Token
     )
     $regex = '\> Enrollment: (Using ?)?(?<name>[^ ]+) (?<value>.*)\.'
