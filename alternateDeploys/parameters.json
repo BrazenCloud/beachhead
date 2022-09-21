@@ -1,0 +1,24 @@
+[
+    {
+        "Name": "Enrollment Token",
+        "Type": 0,
+        "IsOptional": false
+    },
+    {
+        "Name": "IP Range",
+        "Type": 0,
+        "IsOptional": false
+    },
+    {
+        "Name": "PowerShell Remoting",
+        "Description": "Attempt deployment using PowerShell Remoting",
+        "Type": 2,
+        "IsOptional": true
+    },
+    {
+        "Name": "WMI",
+        "Description": "Attempt deployment using WMI",
+        "Type": 2,
+        "IsOptional": true
+    }
+]
