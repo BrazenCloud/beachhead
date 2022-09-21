@@ -10,6 +10,18 @@ Function Get-BcAgentExecutable {
     Invoke-WebRequest -Method Get -Uri "https://$Server/api/v2/content/public?key=runner&platform=$Platform" -OutFile $OutFile
 }
 
+Function Get-BcAgentExecutable {
+    [cmdletbinding()]
+    param (
+        [ValidateSet('Windows64', 'Windows32')]
+        [string]$Platform = 'Windows64',
+        [string]$Server = 'staging.brazencloud.com',
+        [Parameter(Mandatory)]
+        [string]$OutFile
+    )
+    Invoke-WebRequest -Method Get -Uri "https://$Server/api/v2/content/public?key=runway&platform=$Platform" -OutFile $OutFile
+}
+
 Function Get-BcAgentDetails {
     [cmdletbinding()]
     param (
@@ -114,3 +126,12 @@ Function Install-BcAgent {
         Throw "Service failed to create: $out"
     }
 }
+<#
+$execPath = 'C:\runner.exe'
+$utilityPath = 'C:\runway.exe'
+$token = 'ac582afae5b64228a1a628480b775dd8'
+Get-BcAgentExecutable -Platform Windows64 -OutFile C:\runner.exe
+$agentDetails = Get-BcAgentDetails -UtilityPath $utilityPath -EnrollmentToken $token
+$enrollment = Get-BcAgentEnrollment -EnrollmentToken $token -Parameters $agentDetails
+Install-BcAgent -EnrollResponse $enrollment -AgentExecutablePath $execPath -EnrollmentToken $token
+#>

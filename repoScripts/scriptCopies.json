@@ -26,5 +26,8 @@
     ],
     "Remove-BcDatastoreQuery2.ps1": [
         "monitor"
+    ],
+    "Enrollment.ps1": [
+        "alternateDeploys"
     ]
 }
