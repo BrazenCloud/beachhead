@@ -35,7 +35,9 @@ Function Get-BcAgentEnrollment {
     [cmdletbinding()]
     param (
         [string]$Server = 'staging.brazencloud.com',
+        [Parameter(Mandatory)]
         [string]$EnrollmentToken,
+        [Parameter(Mandatory)]
         [hashtable]$Parameters,
         [hashtable]$Interfaces
     )
@@ -65,19 +67,24 @@ Function Install-BcAgent {
             }
         }
         #>
+        [Parameter(Mandatory)]
         [object]$EnrollResponse,
+        [Parameter(Mandatory)]
         [string]$AgentExecutablePath,
+        [Parameter(Mandatory)]
         [string]$EnrollmentToken,
-        [string]$Server
+        [string]$Server = 'staging.brazencloud.com'
     )
     $pfiles = $env:ProgramFiles
     if (-not (Test-Path $pfiles\Runway)) {
-        New-Item $pfiles\Runway -ItemType Directory
+        New-Item $pfiles\Runway -ItemType Directory | Out-Null
     }
 
     $fullInstallPath = "$pfiles\Runway\$($EnrollResponse.nodeId)"
 
-    New-Item $fullInstallPath -ItemType Directory
+    if (-not (Test-Path $fullInstallPath)) {
+        New-Item $fullInstallPath -ItemType Directory | Out-Null
+    }
     Copy-Item $AgentExecutablePath -Destination $fullInstallPath\runner.exe
 
     $x = 0
@@ -100,5 +107,10 @@ Function Install-BcAgent {
     $json = $ht | ConvertTo-Json -Compress
     [System.IO.File]::WriteAllLines("$fullInstallPath\runner_settings.json", $json, [System.Text.UTF8Encoding]::new($false))
 
-    & sc.exe create $serviceName type=own start=auto error=normal binPath="\`"$fullInstallPath\runner.exe\`" service" displayname=$displayName
+    $out = & sc.exe create $serviceName type=own start=auto error=normal binPath="\`"$fullInstallPath\runner.exe\`" service" displayname=$displayName
+    if ($out -like '*SUCCESS') {
+        Start-Service $serviceName
+    } else {
+        Throw "Service failed to create: $out"
+    }
 }
