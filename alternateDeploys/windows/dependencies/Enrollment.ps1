@@ -10,7 +10,7 @@ Function Get-BcAgentExecutable {
     Invoke-WebRequest -Method Get -Uri "https://$Server/api/v2/content/public?key=runner&platform=$Platform" -OutFile $OutFile
 }
 
-Function Get-BcAgentExecutable {
+Function Get-BcUtilityExecutable {
     [cmdletbinding()]
     param (
         [ValidateSet('Windows64', 'Windows32')]

@@ -50,11 +50,11 @@ if ($settings.'PowerShell Remoting'.ToString() -eq 'true') {
         Write-Host "Installing agent..."
         Install-BcAgent -EnrollResponse $enrollment -AgentExecutablePath $execPath -EnrollmentToken $token
         Write-Host "Cleaning..."
-        if (Test-Path C:\runner.exe) {
-            Remove-Item C:\runner.exe -Force
+        if (Test-Path $execPath) {
+            Remove-Item $execPath -Force
         }
-        if (Test-Path C:\runway.exe) {
-            Remove-Item C:\runway.exe -Force
+        if (Test-Path $utilityPath) {
+            Remove-Item $utilityPath -Force
         }
         Write-Host "Complete"
     }
@@ -68,15 +68,22 @@ if ($settings.'PowerShell Remoting'.ToString() -eq 'true') {
 if ($settings.WMI.ToString() -eq 'true') {
     #region WMI
     $name = (Get-WmiObject -Class Win32_ComputerSystem -ComputerName $settings.'IP Range').Name
+    
 
-    $sb = {
-        $execPath = 'C:\runner.exe'
+    $str1 = (Get-Content .\windows\dependencies\Enrollment.ps1 -Raw)
+    $str2 = "`n`$token = '$($settings.'Enrollment Token')'`n"
+    $sb3 = {
         $utilityPath = 'C:\runway.exe'
-        $token = 'ac582afae5b64228a1a628480b775dd8'
-        Get-BcAgentExecutable -Platform Windows64 -OutFile C:\runner.exe
-        $agentDetails = Get-BcAgentDetails -UtilityPath $utilityPath -EnrollmentToken $token
-        $enrollment = Get-BcAgentEnrollment -EnrollmentToken $token -Parameters $agentDetails
-        Install-BcAgent -EnrollResponse $enrollment -AgentExecutablePath $execPath -EnrollmentToken $token
+        Get-BcUtilityExecutable -Platform Windows64 -OutFile $utilityPath
+        Start-Process $utilityPath -ArgumentList '-N', '-S', 'staging.brazencloud.com', 'install', '-t', $token -Wait
+        Write-Output "Cleaning..."
+        if (Test-Path $utilityPath) {
+            Remove-Item $utilityPath -Force
+        }
+        Write-Output "Complete"
     }
+
+    $command = $str1 + $str2 + $sb3.ToString()
+    .\windows\dependencies\wmiexec.ps1 -ComputerName $name -Command $command
     #endregion
 }

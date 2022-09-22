@@ -29,5 +29,8 @@
     ],
     "Enrollment.ps1": [
         "alternateDeploys"
+    ],
+    "wmiexec.ps1": [
+        "alternateDeploys"
     ]
 }
