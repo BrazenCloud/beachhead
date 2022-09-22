@@ -42,34 +42,39 @@ foreach ($ip in $ips) {
         # create the session
         $session = New-PSSession $name
 
-        # Copy runner.exe and runway.exe to remote host
-        Copy-Item ..\..\..\runner.exe -Destination C:\runner.exe -ToSession $session
-        Copy-Item ..\..\..\runway.exe -Destination C:\runway.exe -ToSession $session
+        if ($null -ne $session) {
 
-        # Execute the script
-        $str1 = (Get-Content .\windows\dependencies\Enrollment.ps1 -Raw)
-        $sb2 = {
-            $execPath = 'C:\runner.exe'
-            $utilityPath = 'C:\runway.exe'
-            $token = $using:settings.'Enrollment Token'
-            Write-Host "Retrieving agent details..."
-            $agentDetails = Get-BcAgentDetails -UtilityPath $utilityPath
-            Write-Host "Requesting enrollment..."
-            $enrollment = Get-BcAgentEnrollment -EnrollmentToken $token -Parameters $agentDetails
-            Write-Host "Installing agent..."
-            Install-BcAgent -EnrollResponse $enrollment -AgentExecutablePath $execPath -EnrollmentToken $token
-            Write-Host "Cleaning..."
-            if (Test-Path $execPath) {
-                Remove-Item $execPath -Force
+            # Copy runner.exe and runway.exe to remote host
+            Copy-Item ..\..\..\runner.exe -Destination C:\runner.exe -ToSession $session
+            Copy-Item ..\..\..\runway.exe -Destination C:\runway.exe -ToSession $session
+
+            # Execute the script
+            $str1 = (Get-Content .\windows\dependencies\Enrollment.ps1 -Raw)
+            $sb2 = {
+                $execPath = 'C:\runner.exe'
+                $utilityPath = 'C:\runway.exe'
+                $token = $using:settings.'Enrollment Token'
+                Write-Host "Retrieving agent details..."
+                $agentDetails = Get-BcAgentDetails -UtilityPath $utilityPath
+                Write-Host "Requesting enrollment..."
+                $enrollment = Get-BcAgentEnrollment -EnrollmentToken $token -Parameters $agentDetails
+                Write-Host "Installing agent..."
+                Install-BcAgent -EnrollResponse $enrollment -AgentExecutablePath $execPath -EnrollmentToken $token
+                Write-Host "Cleaning..."
+                if (Test-Path $execPath) {
+                    Remove-Item $execPath -Force
+                }
+                if (Test-Path $utilityPath) {
+                    Remove-Item $utilityPath -Force
+                }
+                Write-Host "Complete"
             }
-            if (Test-Path $utilityPath) {
-                Remove-Item $utilityPath -Force
-            }
-            Write-Host "Complete"
+            Invoke-Command -Session $session -ScriptBlock ([scriptblock]::Create(($str1 + $sb2.ToString())))
+
+            Remove-PSSession $session
+        } else {
+            Write-Host 'Failed to create session.'
         }
-        Invoke-Command -Session $session -ScriptBlock ([scriptblock]::Create(($str1 + $sb2.ToString())))
-
-        Remove-PSSession $session
 
         #endregion
     } elseif ($settings.WMI.ToString() -eq 'true') {
