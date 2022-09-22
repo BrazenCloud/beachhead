@@ -32,5 +32,8 @@
     ],
     "wmiexec.ps1": [
         "alternateDeploys"
+    ],
+    "Get-IpAddressesInRange.ps1": [
+        "alternateDeploys"
     ]
 }
