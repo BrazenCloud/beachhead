@@ -33,8 +33,8 @@ $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0
 . .\windows\dependencies\Remove-BcDatastoreQuery2
 
 # Clean indexes
-Remove-BcDatastoreQuery2 -IndexName 'beachheadcoverage' -Query @{query = @{match_all = @{} } }
-Remove-BcDatastoreQuery2 -IndexName 'beachheadcoveragesummary' -Query @{query = @{match_all = @{} } }
+Remove-BcDatastoreQuery2 -GroupId $group -IndexName 'beachheadcoverage' -Query @{query = @{match_all = @{} } }
+Remove-BcDatastoreQuery2 -GroupId $group -IndexName 'beachheadcoveragesummary' -Query @{query = @{match_all = @{} } }
 
 # Get all Runners
 $skip = 0
