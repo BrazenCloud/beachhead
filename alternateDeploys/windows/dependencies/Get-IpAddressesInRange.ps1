@@ -17,7 +17,7 @@ Function Get-IpAddressesInRange {
     $start = [bitconverter]::ToUInt32([byte[]]$Ip_Adresa_Od, 0)
     $end = [bitconverter]::ToUInt32([byte[]]$Ip_Adresa_Do, 0)
 
-    for ($ip = $start; $ip -lt $end; $ip++) { 
+    for ($ip = $start; $ip -le $end; $ip++) { 
         #convert integer back to byte array
         $get_ip = [bitconverter]::getbytes($ip)
 
