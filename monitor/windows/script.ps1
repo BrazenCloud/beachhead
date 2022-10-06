@@ -6,6 +6,13 @@ $settings
 # function to auth as the runner
 . .\windows\dependencies\Get-BrazenCloudDaemonToken.ps1
 
+# update nuget, if necessary
+$v = (Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyContinue).Version
+if ($null -eq $v -or $v -lt 2.8.5.201) {
+    Write-Host 'Updating NuGet...'
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Confirm:$false -Force -Verbose
+}
+
 # set up the BrazenCloud module
 if (-not (Get-Module BrazenCloud -ListAvailable)) {
     Install-Module BrazenCloud -MinimumVersion 0.3.2 -Force
