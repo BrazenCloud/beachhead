@@ -21,7 +21,7 @@ foreach ($manifest in $manifests) {
     Write-Host "----------------------------------------------"
     Write-Host "Publishing: '$namespace'..."
 
-    & $UtilityPath -q -N -S $Server build -i $($manifest.FullName) -o "$($namespace.Replace(':','-')).apt" -p $namespace
+    & $UtilityPath -q -N -S $Server build -i $($manifest.FullName) -o "$($namespace.Replace(':','-')).apt" -p $namespace --PUBLIC
 }
 
 Get-ChildItem *.apt | ForEach-Object { Remove-Item $_.FullName -Force }
