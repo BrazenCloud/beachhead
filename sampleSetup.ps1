@@ -1,0 +1,29 @@
+<#
+    This script is provided as a sample to prepare your environment to run BrazenCloud Beachhead.
+
+    If you already have v0.3.3+ of the BrazenCloud module installed, you can skip the module installation.
+
+    Please refer to the README.md for a full description.
+#>
+
+# Install the required version of the BrazenCloud module
+# When v0.3.3 is released, that will have full support without the cmdlet names ending in 2
+Install-Module BrazenCloud -RequiredVersion 0.3.3-beta -AllowPrerelease
+Import-Module BrazenCloud -RequiredVersion 0.3.3
+
+# Authenticate
+Connect-BrazenCloud
+
+# Create a new group
+$splat = @{
+    LicenseAllocatedRunners     = 100 # number of licenses to assign
+    Name                        = 'Beachhead Demo'
+    ParentGroupId               = (Get-BcAuthenticationCurrentUser).HomeContainerId # this example uses the user's root group ID
+    LicenseCanAssignSubLicenses = $false
+    LicenseSkip                 = $false
+}
+$group = New-BcGroup @splat
+
+# Upload the sample config
+$sampleConfig = Get-Content $PSScriptRoot\sampleConfig.json | ConvertFrom-Json
+Invoke-BcBulkDatastoreInsert2 -GroupId $group -Data $sampleConfig -IndexName 'beachheadconfig'
