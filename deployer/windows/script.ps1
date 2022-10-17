@@ -33,10 +33,10 @@ $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0
 
 # Get agents to deploy
 $installCheck = (Get-BcRepository -Name 'beachhead:installCheck').Id
-$agentInstalls = Invoke-BcQueryDataStore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
+$agentInstalls = Invoke-BcQueryDatastore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
 
 # Get all endpointassets w/runner in current group
-$endpointAssets = Get-BcEndpointAssetwRunner
+$endpointAssets = Get-BcEndpointAssetwRunner -GroupId $group
 
 # foreach agentInstall, get runners lacking the tag and assign the job
 foreach ($atd in $agentInstalls) {
