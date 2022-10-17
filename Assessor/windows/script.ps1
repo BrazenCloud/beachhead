@@ -64,11 +64,18 @@ Add-BcTag -SetId $set -Tags 'Beachhead', 'AssetDiscovery'
 Write-Host "Created Asset discovery job with ID: $($job.JobId)"
 #endregion
 
-#region Initiate autodeploy
+<#region Initiate autodeploy
 # https://docs.microsoft.com/en-us/powershell/module/nettcpip/get-netroute?view=windowsserver2022-ps#example-5-get-ip-routes-to-non-local-destinations
+<#
 $internetRoute = Get-NetRoute | Where-Object -FilterScript { $_.NextHop -Ne "::" } | Where-Object -FilterScript { $_.NextHop -Ne "0.0.0.0" } | Where-Object -FilterScript { ($_.NextHop.SubString(0, 6) -Ne "fe80::") } | Sort-Object InterfaceMetric | Select-Object -First 1
 $ipconfig = Get-NetIPConfiguration -InterfaceIndex $internetRoute.InterfaceIndex
 $subnet = Get-IPv4Subnet -IPAddress $ipconfig.IPv4Address.IPAddress -PrefixLength $ipconfig.IPv4Address.PrefixLength
+#
+
+# hard coding /24 for demos.
+$internetRoute = Get-NetRoute | Where-Object -FilterScript { $_.NextHop -Ne "::" } | Where-Object -FilterScript { $_.NextHop -Ne "0.0.0.0" } | Where-Object -FilterScript { ($_.NextHop.SubString(0, 6) -Ne "fe80::") } | Sort-Object InterfaceMetric | Select-Object -First 1
+$ipconfig = Get-NetIPConfiguration -InterfaceIndex $internetRoute.InterfaceIndex
+$subnet = Get-IPv4Subnet -IPAddress $ipconfig.IPv4Address.IPAddress -PrefixLength 24
 
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
@@ -95,7 +102,7 @@ Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
 Add-BcTag -SetId $set -Tags 'Beachhead', 'AutoDeploy'
 
 Write-Host "Created autodeploy job with ID: $($job.JobId)"
-#endregion
+#endregion#>
 
 #region Initiate periodic jobs
 
@@ -121,10 +128,6 @@ Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
 Add-BcTag -SetId $set -Tags 'Beachhead', 'Deployer'
 
 Write-Host "Created job: Beachhead Deployer"
-
-#endregion
-
-#region Initiate alternate deploy
 
 #endregion
 
