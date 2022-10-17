@@ -34,29 +34,32 @@ $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0
 #region Deploy BC Agent
 $ea = Get-BcEndpointAssetwRunner -Without -GroupId $group
 
-$set = New-BcSet
-# add runners to set
-Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
-$jobSplat = @{
-    Name          = "Beachhead BrazenAgent Deploy: $($atd.Name)"
-    GroupId       = $group
-    EndpointSetId = $set
-    IsEnabled     = $true
-    IsHidden      = $false
-    Actions       = @(
-        @{
-            RepositoryActionId = (Get-BcRepository -Name 'beachhead:bcDeployer')
-            Settings           = @{
-                IPs = ($ea.LastIPAddress -join ',')
+if ($ea.Count -gt 0) {
+    $set = New-BcSet
+    # add runners to set
+    Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
+    $jobSplat = @{
+        Name          = "Beachhead BrazenAgent Deploy"
+        GroupId       = $group
+        EndpointSetId = $set
+        IsEnabled     = $true
+        IsHidden      = $false
+        Actions       = @(
+            @{
+                RepositoryActionId = (Get-BcRepository -Name 'beachhead:bcDeployer').Id
+                Settings           = @{
+                    'Enrollment Token' = (New-BcEnrollmentSession -Type 'EnrollPersistentRunner' -Expiration (Get-Date).AddDays(1) -GroupId $group -IsOneTime:$false).Token
+                    IPs                = ($ea.LastIPAddress -join ',')
+                }
             }
-        }
-    )
-    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
+        )
+        Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
+    }
+    $job = New-BcJob @jobSplat
+    $set = New-BcSet
+    Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
+    Add-BcTag -SetId $set -Tags 'Beachhead', 'BrazenAgentInstall'
 }
-$job = New-BcJob @jobSplat
-$set = New-BcSet
-Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
-Add-BcTag -SetId $set -Tags 'Beachhead', 'BrazenAgentInstall'
 
 #endregion
 
