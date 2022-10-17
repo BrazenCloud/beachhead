@@ -1,10 +1,11 @@
 Function Get-BcEndpointAssetwRunner {
     [cmdletbinding()]
     param (
-
+        [string]$GroupId
     )
     $query = @{
         includeSubgroups = $true
+        rootContainerId  = $GroupId
         skip             = 0
         take             = 1
         sortDirection    = 0
