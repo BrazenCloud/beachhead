@@ -1,18 +1,34 @@
 Function Get-BcEndpointAssetwRunner {
     [cmdletbinding()]
     param (
-        [string]$GroupId
+        [string]$GroupId,
+        [switch]$Without
     )
-    $query = @{
-        includeSubgroups = $true
-        rootContainerId  = $GroupId
-        skip             = 0
-        take             = 1
-        sortDirection    = 0
-        filter           = @{
-            Left     = 'HasRunner'
-            Operator = '='
-            Right    = 'True'
+    if ($Without.IsPresent) {
+        $query = @{
+            includeSubgroups = $true
+            rootContainerId  = $GroupId
+            skip             = 0
+            take             = 1
+            sortDirection    = 0
+            filter           = @{
+                Left     = 'HasRunner'
+                Operator = '='
+                Right    = 'False'
+            }
+        }
+    } else {
+        $query = @{
+            includeSubgroups = $true
+            rootContainerId  = $GroupId
+            skip             = 0
+            take             = 1
+            sortDirection    = 0
+            filter           = @{
+                Left     = 'HasRunner'
+                Operator = '='
+                Right    = 'True'
+            }
         }
     }
     $ea = Invoke-BcQueryEndpointAsset -Query $query
