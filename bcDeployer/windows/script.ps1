@@ -42,14 +42,15 @@ $ips = & {
 
 [System.IO.File]::WriteAllLines('.\IPs.txt', ($ips -join ','), [System.Text.UTF8Encoding]::UTF8)
 
-# First, try the built in auto doploy
+#region First, try the built in auto doploy
 ..\..\..\runway.exe -N -S $settings.host deploy --list "'$((Get-Item .\IPs).FullName)'" --token $($settings.'Enrollment Token')
+#endregion
 
 # Then find all remaining EndpointAssets without Runners that are in the ips array
 $remainingEndpoints = Get-BcEndpointAssetwRunner -Without | Where-Object { $ips -contains $_.LastIPAddress }
 Write-Host "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
 
-# Now try Remove PowerShell Deployment
+#region Now try Remove PowerShell Deployment
 
 # Download runner.exe
 Get-BcAgentExecutable -Platform Windows64 -OutFile .\runner.exe
@@ -99,14 +100,13 @@ foreach ($ip in $remainingEndpoints.LastIPAddress) {
 
     #endregion
 }
+#endregion
 
 # Then find all remaining EndpointAssets without Runners that are in the ips array
 $remainingEndpoints = Get-BcEndpointAssetwRunner -Without | Where-Object { $ips -contains $_.LastIPAddress }
 Write-Host "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
 
-# Now try WMI deployment
-
-#region WMI
+#region Now try WMI deployment
 foreach ($ip in $remainingEndpoints.LastIPAddress) {
     Write-Host "Attempting WMI deployment on $ip"
     $name = (Get-WmiObject -Class Win32_ComputerSystem -ComputerName $ip).Name
@@ -128,3 +128,4 @@ foreach ($ip in $remainingEndpoints.LastIPAddress) {
     $command = $str1 + $str2 + $sb3.ToString()
     .\windows\dependencies\wmiexec.ps1 -ComputerName $name -Command $command
 }
+#endregion
