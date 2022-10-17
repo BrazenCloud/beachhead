@@ -31,6 +31,36 @@ $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 . .\windows\dependencies\Get-BcEndpointAssetwRunner.ps1
 
+#region Deploy BC Agent
+$ea = Get-BcEndpointAssetwRunner -Without -GroupId $group
+
+$set = New-BcSet
+# add runners to set
+Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
+$jobSplat = @{
+    Name          = "Beachhead BrazenAgent Deploy: $($atd.Name)"
+    GroupId       = $group
+    EndpointSetId = $set
+    IsEnabled     = $true
+    IsHidden      = $false
+    Actions       = @(
+        @{
+            RepositoryActionId = (Get-BcRepository -Name 'beachhead:bcDeployer')
+            Settings           = @{
+                IPs = ($ea.LastIPAddress -join ',')
+            }
+        }
+    )
+    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
+}
+$job = New-BcJob @jobSplat
+$set = New-BcSet
+Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
+Add-BcTag -SetId $set -Tags 'Beachhead', 'BrazenAgentInstall'
+
+#endregion
+
+#region Deploy other required agents
 # Get agents to deploy
 $installCheck = (Get-BcRepository -Name 'beachhead:installCheck').Id
 $agentInstalls = Invoke-BcQueryDatastore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
@@ -83,3 +113,4 @@ foreach ($atd in $agentInstalls) {
         Write-Host "No agents need $($atd.Name)"
     }
 }
+#endregion
