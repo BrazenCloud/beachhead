@@ -6,6 +6,13 @@
     },
     {
         "Name": "IP Range",
+        "Description": "Range of IPs in format: IP-IP",
+        "Type": 0,
+        "IsOptional": false
+    },
+    {
+        "Name": "IPs",
+        "Description": "Comma separated list of IPs.",
         "Type": 0,
         "IsOptional": false
     },
