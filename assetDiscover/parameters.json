@@ -1,0 +1,8 @@
+[
+    {
+        "Name": "Group ID",
+        "Description": "Group to upload mapped assets to. Defaults to the runner's group.",
+        "Type": 0,
+        "IsOptional": true
+    }
+]

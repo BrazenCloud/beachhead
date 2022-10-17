@@ -1,0 +1,9 @@
+{
+    "Description": "Customized asset discovery for Beachhead.",
+    "Language": "PowerShell",
+    "Tags": [
+        "Beachhead",
+        "Windows",
+        "AssetDiscovery"
+    ]
+}

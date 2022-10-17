@@ -4,7 +4,8 @@
         "assessor",
         "bcDeployer",
         "deployer",
-        "monitor"
+        "monitor",
+        "assetDiscover"
     ],
     "Invoke-BcBulkDatastoreInsert2.ps1": [
         "monitor"

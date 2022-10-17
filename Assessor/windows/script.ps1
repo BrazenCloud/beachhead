@@ -47,9 +47,9 @@ $assetdiscoverSplat = @{
     IsHidden      = $false
     Actions       = @(
         @{
-            RepositoryActionId = (Get-BcRepository -Name 'map:discover').Id
+            RepositoryActionId = (Get-BcRepository -Name 'beachhead:assetDiscover').Id
             Settings           = @{
-                "Update Assets" = 'true'
+                "Group ID" = $group
             }
         }
     )
