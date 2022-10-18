@@ -1,4 +1,4 @@
-#regien dependencies
+#region dependencies
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 #endregion
 

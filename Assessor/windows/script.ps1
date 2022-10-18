@@ -1,4 +1,4 @@
-#region dependencios
+#region dependencies
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 . .\windows\dependencies\subnets.ps1
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
