@@ -1,10 +1,8 @@
-#region Prep
-# load settings.json
-$settings = Get-Content .\settings.json | ConvertFrom-Json
-$settings
+#regien dependencies
+. .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
+#endregion
 
-# function to auth as the runner
-. .\windows\dependencies\Get-BrazenCloudDaemonToken.ps1
+Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json)
 
 # update nuget, if necessary
 $v = (Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyContinue).Version
