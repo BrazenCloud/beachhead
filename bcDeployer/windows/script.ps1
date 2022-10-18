@@ -30,7 +30,7 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 . .\windows\dependencies\Enrollment.ps1
 . .\windows\dependencies\Get-IpAddressesInRange.ps1
-. .\windows\dependencies\Get-BcEndpointAssetwRunner.ps1
+. .\windows\dependencies\Get-BcEndpointAssetHelper.ps1
 
 if ($settings.'IP Range'.Length -gt 0 -and $settings.'IP Range' -notmatch '(\d{1,3}\.){3}\d{1,3}\-(\d{1,3}\.){3}\d{1,3}') {
     Throw 'Invalid IP range. Expecting something like: 192.168.0.1-192.168.10.1'
@@ -54,7 +54,7 @@ $ipRange = $ips | ForEach-Object { [ipaddress]$_ } | Sort-Object Address
 #endregion
 
 # Then find all remaining EndpointAssets without Runners that are in the ips array
-$remainingEndpoints = Get-BcEndpointAssetwRunner -Without -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
+$remainingEndpoints = Get-BcEndpointAssetHelper -NoRunner -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
 Write-Host "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
 
 #region Now try Remove PowerShell Deployment
@@ -110,7 +110,7 @@ foreach ($ip in $remainingEndpoints.LastIPAddress) {
 #endregion
 
 # Then find all remaining EndpointAssets without Runners that are in the ips array
-$remainingEndpoints = Get-BcEndpointAssetwRunner -Without -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
+$remainingEndpoints = Get-BcEndpointAssetHelper -NoRunner -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
 Write-Host "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
 
 #region Now try WMI deployment
