@@ -3,17 +3,18 @@ Function Invoke-BcBulkDatastoreInsert2 {
     param (
         [string]$GroupId = (Get-BcAuthenticationCurrentUser).HomeContainerId,
         [Parameter(Mandatory)]
-        [psobject[]]$Data,
+        $Data,
         [Parameter(Mandatory)]
         [string]$IndexName
     )
+    $json = $Data | ConvertTo-Json -Depth 10 -Compress
+    if ($Data.GetType().Name -notlike '*`[`]') {
+        $json = "[$json]"
+    }
     $splat = @{
         Method  = 'Post'
-        Uri     = "https://$($env:BrazenCloudDomain)/api/v2/datastore/$IndexName/bulk"
-        Body    = @{
-            groupId = $GroupId
-            data    = $Data
-        } | ConvertTo-Json -Depth 10 -Compress
+        Uri     = "https://$($env:BrazenCloudDomain)/api/v2/datastore/$IndexName/$GroupId/bulk"
+        Body    = $json
         Headers = @{
             Accept         = 'application/json'
             'Content-Type' = 'application/json'

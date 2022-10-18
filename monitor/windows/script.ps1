@@ -86,7 +86,7 @@ $coverageSummary = @{
 }
 
 #foreach agent deploy, calculate coverage
-$agentInstalls = Invoke-BcQueryDataStore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
+$agentInstalls = Invoke-BcQueryDatastore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
 foreach ($ai in $agentInstalls) {
     $installCount = ($endpointAssets | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
     $coverageSummary['counts']["$($ai.Name.Replace(' ',''))Installs"] = $installCount
@@ -102,7 +102,7 @@ foreach ($ai in $agentInstalls) {
     
     Select-Object Name, LastIPAddress, PreferredMacAddress
 }
-$coverageSummary | ConvertTo-Json -Depth 10
+$coverageSummary | ConvertTo-Json -Depth 10 -Compress
 
 $coverageSummary | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReportSummary.json
 
