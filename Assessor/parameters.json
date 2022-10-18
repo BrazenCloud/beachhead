@@ -1,20 +1,16 @@
 [
     {
         "Name": "Monitor Interval",
+        "Description": "How frequently (in minutes) the coverage stats should be updated.",
         "Type": 1,
-        "DefaultValue": 20,
+        "DefaultValue": 5,
         "IsOptional": false
     },
     {
         "Name": "Deployer Interval",
+        "Description": "How frequently (in minutes) assets should be scanned for agent deployments.",
         "Type": 1,
-        "DefaultValue": 20,
-        "IsOptional": false
-    },
-    {
-        "Name": "Autodeploy Interval",
-        "Type": 1,
-        "DefaultValue": 20,
+        "DefaultValue": 5,
         "IsOptional": false
     }
 ]
