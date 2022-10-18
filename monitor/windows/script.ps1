@@ -36,31 +36,29 @@ $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0
 Remove-BcDatastoreQuery2 -GroupId $group -IndexName 'beachheadcoverage' -Query @{query = @{match_all = @{} } }
 Remove-BcDatastoreQuery2 -GroupId $group -IndexName 'beachheadcoveragesummary' -Query @{query = @{match_all = @{} } }
 
-# Get all Runners
-$skip = 0
-$take = 1000
-$r = Invoke-BcQueryRunner -MembershipCheckId $group -Take $take -Skip $skip -IncludeSubgroups:$false -SortDirection 1
-[BrazenCloudSdk.PowerShell.Models.IRunnerQueryView[]]$runners = $r.Items
-while ($runners.Count -lt $r.FilteredCount) {
-    $skip = $skip + $take
-    Write-Host 'query'
-    Write-Host "Skip: $skip"
-    $r = Invoke-BcQueryRunner -MembershipCheckId $group -Take $take -Skip $skip -IncludeSubgroups:$false -SortDirection 1
-    [BrazenCloudSdk.PowerShell.Models.IRunnerQueryView[]]$runners += $r.Items
-}
-
 #calculate runner coverage
 $skip = 0
 $take = 1000
 $query = @{
-    includeSubgroups = $true
-    skip             = $skip
-    take             = $take
-    sortDirection    = 0
-    filter           = @{
-        Left     = 'OSName'
-        Operator = '^:'
-        Right    = 'Microsoft Windows'
+    includeSubgroups  = $true
+    MembershipCheckId = $group
+    skip              = $skip
+    take              = $take
+    sortDirection     = 0
+    filter            = @{
+        children = @(
+            @{
+                Left     = 'OSName'
+                Operator = '^:'
+                Right    = 'Microsoft Windows'
+            },
+            @{
+                Left     = 'Groups'
+                Operator = '='
+                Right    = $group
+            }
+        )
+        operator = 'AND'
     }
 }
 $ea = Invoke-BcQueryEndpointAsset -Query $query
@@ -75,9 +73,9 @@ $lastUpdate = (Get-Date).ToString()
 
 $coverageSummary = @{
     LastUpdate          = $lastUpdate
-    BrazenCloudCoverage = $([math]::round($($runners.Count / $endpointAssets.Count), 2) * 100)
+    BrazenCloudCoverage = $([math]::round((($endpointAssets | Where-Object { $_.HasRunner }).Count / $endpointAssets.Count), 2) * 100)
     counts              = @{
-        Runners        = $runners.Count
+        Runners        = ($endpointAssets | Where-Object { $_.HasRunner }).Count
         EndpointAssets = $endpointAssets.Count
     }
     missing             = @{
