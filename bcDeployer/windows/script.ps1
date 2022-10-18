@@ -27,9 +27,10 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 #endregion
 
+$group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 . .\windows\dependencies\Enrollment.ps1
 . .\windows\dependencies\Get-IpAddressesInRange.ps1
-. .\windows\Get-BcEndpointAssetwRunner.ps1
+. .\windows\dependencies\Get-BcEndpointAssetwRunner.ps1
 
 if ($settings.'IP Range'.Length -gt 0 -and $settings.'IP Range' -notmatch '(\d{1,3}\.){3}\d{1,3}\-(\d{1,3}\.){3}\d{1,3}') {
     Throw 'Invalid IP range. Expecting something like: 192.168.0.1-192.168.10.1'
@@ -48,11 +49,12 @@ $ips = & {
 [System.IO.File]::WriteAllLines('.\IPs.txt', ($ips -join ','), [System.Text.UTF8Encoding]::UTF8)
 
 #region First, try the built in auto doploy
-..\..\..\runway.exe -N -S $settings.host deploy --list "'$((Get-Item .\IPs.txt).FullName)'" --token $($settings.'Enrollment Token')
+$ipRange = $ips | ForEach-Object { [ipaddress]$_ } | Sort-Object Address
+..\..\..\runway.exe --loglevel debug -N -S $($settings.host) deploy --range "$($ipRange[0].IPAddressToString)-$($ipRange[-1].IPAddressToString)" --token $($settings.'Enrollment Token')
 #endregion
 
 # Then find all remaining EndpointAssets without Runners that are in the ips array
-$remainingEndpoints = Get-BcEndpointAssetwRunner -Without | Where-Object { $ips -contains $_.LastIPAddress }
+$remainingEndpoints = Get-BcEndpointAssetwRunner -Without -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
 Write-Host "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
 
 #region Now try Remove PowerShell Deployment
@@ -108,7 +110,7 @@ foreach ($ip in $remainingEndpoints.LastIPAddress) {
 #endregion
 
 # Then find all remaining EndpointAssets without Runners that are in the ips array
-$remainingEndpoints = Get-BcEndpointAssetwRunner -Without | Where-Object { $ips -contains $_.LastIPAddress }
+$remainingEndpoints = Get-BcEndpointAssetwRunner -Without -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
 Write-Host "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
 
 #region Now try WMI deployment
