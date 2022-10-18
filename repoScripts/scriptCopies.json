@@ -1,12 +1,4 @@
 {
-    "Get-BrazenCloudDaemonToken.ps1": [
-        "installCheck",
-        "assessor",
-        "bcDeployer",
-        "deployer",
-        "monitor",
-        "assetDiscover"
-    ],
     "Invoke-BcBulkDatastoreInsert2.ps1": [
         "monitor"
     ],
