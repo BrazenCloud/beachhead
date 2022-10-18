@@ -29,21 +29,26 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 . .\windows\dependencies\Enrollment.ps1
 . .\windows\dependencies\Get-IpAddressesInRange.ps1
+. .\windows\Get-BcEndpointAssetwRunner.ps1
 
-if ($settings.'IP Range' -notmatch '(\d{1,3}\.){3}\d{1,3}\-(\d{1,3}\.){3}\d{1,3}') {
+if ($settings.'IP Range'.Length -gt 0 -and $settings.'IP Range' -notmatch '(\d{1,3}\.){3}\d{1,3}\-(\d{1,3}\.){3}\d{1,3}') {
     Throw 'Invalid IP range. Expecting something like: 192.168.0.1-192.168.10.1'
 }
 
 ## Build IP Address Array
 $ips = & {
-    Get-IpAddressesInRange -First $settings.'IP Range'.Split('-')[0] -Last $settings.'IP Range'.Split('-')[1]
-    $settings.IPs -split ',' | ForEach-Object { $_.Trim() }
+    if ($settings.'IP Range' -match '(\d{1,3}\.){3}\d{1,3}\-(\d{1,3}\.){3}\d{1,3}') {
+        Get-IpAddressesInRange -First $settings.'IP Range'.Split('-')[0] -Last $settings.'IP Range'.Split('-')[1]
+    }
+    if ($settings.IPs.Length -gt 0) {
+        $settings.IPs -split ',' | ForEach-Object { $_.Trim() }
+    }
 }
 
 [System.IO.File]::WriteAllLines('.\IPs.txt', ($ips -join ','), [System.Text.UTF8Encoding]::UTF8)
 
 #region First, try the built in auto doploy
-..\..\..\runway.exe -N -S $settings.host deploy --list "'$((Get-Item .\IPs).FullName)'" --token $($settings.'Enrollment Token')
+..\..\..\runway.exe -N -S $settings.host deploy --list "'$((Get-Item .\IPs.txt).FullName)'" --token $($settings.'Enrollment Token')
 #endregion
 
 # Then find all remaining EndpointAssets without Runners that are in the ips array
