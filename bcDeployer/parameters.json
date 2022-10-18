@@ -8,13 +8,13 @@
         "Name": "IP Range",
         "Description": "Range of IPs in format: IP-IP",
         "Type": 0,
-        "IsOptional": false
+        "IsOptional": true
     },
     {
         "Name": "IPs",
         "Description": "Comma separated list of IPs.",
         "Type": 0,
-        "IsOptional": false
+        "IsOptional": true
     },
     {
         "Name": "PowerShell Remoting",
