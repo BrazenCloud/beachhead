@@ -94,11 +94,11 @@ Invoke-BcBulkDatastoreInsert2 -Data $data -IndexName 'beachheadconfig' -GroupId 
 
 ## Tracking coverage
 
-When the `beachhead:monitor` job runs, it will create 2 additional indexes: `coverage` and `coverageSummary`.
+When the `beachhead:monitor` job runs, it will create 2 additional indexes: `beachheadcoverage` and `beachheadcoveragesummary`.
 
-For a high level view of how the deployment is going, refer to the `coverageSummary` index.
+For a high level view of how the deployment is going, refer to the `beachheadcoveragesummary` index.
 
-For specific coverage information for each discovered asset, refer to the `coverage` index.
+For specific coverage information for each discovered asset, refer to the `beachheadcoverage` index.
 
 ## Beachhead Jobs
 
@@ -110,8 +110,8 @@ For a visual representation of how Beachhead works:
 
 The `beachhead:assessor` action kicks off Beachhead. It will initiate the following jobs automatically:
 
-- `map:discover`: Periodically run Asset discovery.
-- `runway:deploy`: Periodically attempt to autodeploy the BrazenCloud agent.
+- `beachhead:assetDiscover`: Periodically run Asset discovery.
+- `beachhead:bcDeployer`: Periodically deploy the BrazenCloud agent to discovered endpoints.
 - `beachhead:deployer`: Periodically scan for endpoints with the BrazenCloud agent that need the other agents installed.
 - `beachhead:monitor`: Periodically update the coverage report.
 
@@ -123,8 +123,10 @@ The `beachhead:deployer` action will run periodically at the interval specified 
 
 The `beachhead:monitor` action will run periodically at the interval specified by `beachhead:assessor` and update the coverage reports.
 
-### Alternate Deployer
+### BcDeployer
 
-**This has not yet been implemented**
+The `beachhead:bcDeployer` action runs periodically at the interval specified by `beachhead:assessor` and will scan the group that the job is initiated from, find all discovered endpoints that do not currently have the BrazenCloud agent installed, and attempt to install the agent using the following deployment methods, in order:
 
-The `beachhead:alternateDeployer` action will run periodically at the interval specified by `beachhead:assessor` and for any assets that do not have the BrazenCloud agent, it will attempt to deploy via alternate methods. Specifically Remote PowerShell or WMI.
+1. **autodeploy**: This is a deployment method built into the agent that utilizes the `admin$` share.
+2. **PowerShell remoting**: If the autodeploy method fails, PowerShell remoting is attempted
+3. **WMI**: If PowerShell remoting fails, WMI commands are attempted.
