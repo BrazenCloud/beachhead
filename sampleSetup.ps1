@@ -8,7 +8,8 @@
 
 # Install the required version of the BrazenCloud module
 # When v0.3.3 is released, that will have full support without the cmdlet names ending in 2
-Install-Module BrazenCloud -RequiredVersion 0.3.3-beta -AllowPrerelease
+# This should install v0.3.3-beta1
+Install-Module BrazenCloud -AllowPrerelease
 Import-Module BrazenCloud -RequiredVersion 0.3.3
 
 # Authenticate
@@ -16,11 +17,11 @@ Connect-BrazenCloud
 
 # Create a new group
 $splat = @{
-    LicenseAllocatedRunners     = 100 # number of licenses to assign
+    LicenseAllocatedRunners     = 0 # number of licenses to assign
     Name                        = 'Beachhead Demo'
     ParentGroupId               = (Get-BcAuthenticationCurrentUser).HomeContainerId # this example uses the user's root group ID
     LicenseCanAssignSubLicenses = $false
-    LicenseSkip                 = $false
+    LicenseSkip                 = $false # if true, licenses will not be managed at this tenant, if it is a tenant
 }
 $group = New-BcGroup @splat
 
