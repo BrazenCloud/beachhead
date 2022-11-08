@@ -1,5 +1,6 @@
 #region dependencies
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
+. .\windows\dependencies\subnets.ps1
 #endregion
 
 Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json)
@@ -25,7 +26,17 @@ $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 
 #endregion
 
-..\..\..\runway.exe -N discover --json map.json
+#region calculate network with cidr
+# first find network
+$route = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' } | Sort-Object RouteMetric)[0]
+$ip = Get-NetIPAddress -InterfaceIndex $route.InterfaceIndex -AddressFamily IPv4
+
+# find first ip
+$subnet = Get-Ipv4Subnet -IPAddress $ip.IPAddress -PrefixLength $ip.PrefixLength
+
+#endregion
+
+..\..\..\runway.exe -N discover --json map.json --range $subnet.CidrID
 $map = Get-Content .\map.json | ConvertFrom-Json
 $htArr = foreach ($obj in $map.EndpointData) {
     $ht = @{}
