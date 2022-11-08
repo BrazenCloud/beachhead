@@ -1,6 +1,6 @@
 #region dependencies
-. .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 . .\windows\dependencies\Get-BcEndpointAssetHelper.ps1
+. .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 #endregion
 

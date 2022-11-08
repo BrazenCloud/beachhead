@@ -16,7 +16,8 @@
         "bcDeployer"
     ],
     "subnets.ps1": [
-        "assessor"
+        "assessor",
+        "assetDiscover"
     ],
     "Remove-BcDatastoreQuery2.ps1": [
         "monitor"

@@ -31,6 +31,8 @@ Function Initialize-BcRunnerAuthentication {
         }
     }
 
+    $global:settings = $Settings
+
     # update nuget, if necessary
     $v = (Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyContinue).Version
     if ($null -eq $v -or $v -lt 2.8.5.201) {
