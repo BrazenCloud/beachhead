@@ -4,26 +4,6 @@
 #endregion
 
 Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json)
-
-# update nuget, if necessary
-$v = (Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyContinue).Version
-if ($null -eq $v -or $v -lt 2.8.5.201) {
-    Write-Host 'Updating NuGet...'
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Confirm:$false -Force -Verbose
-}
-
-# set up the BrazenCloud module
-if (-not (Get-Module BrazenCloud -ListAvailable)) {
-    Install-Module BrazenCloud -MinimumVersion 0.3.2 -Force
-}
-$wp = $WarningPreference
-$WarningPreference = 'SilentlyContinue'
-Import-Module BrazenCloud | Out-Null
-$WarningPreference = $wp
-$env:BrazenCloudSessionToken = Get-BrazenCloudDaemonToken -aToken $settings.atoken -Domain $settings.host
-$env:BrazenCloudSessionToken
-$env:BrazenCloudDomain = $settings.host.split('/')[-1]
-
 #endregion
 
 #region calculate network with cidr
@@ -36,7 +16,7 @@ $subnet = Get-Ipv4Subnet -IPAddress $ip.IPAddress -PrefixLength $ip.PrefixLength
 
 #endregion
 
-..\..\..\runway.exe -N discover --json map.json --range $subnet.CidrID
+..\..\..\runway.exe -N discover --json map.json --range $($subnet.CidrID)
 $map = Get-Content .\map.json | ConvertFrom-Json
 $htArr = foreach ($obj in $map.EndpointData) {
     $ht = @{}
