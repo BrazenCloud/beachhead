@@ -27,6 +27,11 @@ $assetdiscoverSplat = @{
             RepositoryActionId = (Get-BcRepository -Name 'beachhead:assetDiscover').Id
             Settings           = @{
                 "Group ID" = $group
+                "Subnet"   = if ($settings.'Subnet to Scan'.Length -gt 0) {
+                    $settings.'Subnet To Scan'
+                } else {
+                    $null
+                }
             }
         }
     )

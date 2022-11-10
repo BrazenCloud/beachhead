@@ -12,5 +12,11 @@
         "Type": 1,
         "DefaultValue": 5,
         "IsOptional": false
+    },
+    {
+        "Name": "Subnet to Scan",
+        "Description": "If left blank, the local subnet will be dynamically determined.",
+        "Type": 0,
+        "IsOptional": true
     }
 ]

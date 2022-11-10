@@ -7,16 +7,25 @@ Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | Conve
 #endregion
 
 #region calculate network with cidr
-# first find network
-$route = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' } | Sort-Object RouteMetric)[0]
-$ip = Get-NetIPAddress -InterfaceIndex $route.InterfaceIndex -AddressFamily IPv4
+if ($settings.'Subnet'.Length -gt 0) {
+    if ($subnet -match '^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$') {
+        $subnet = $settings.'Subnet'
+    } else {
+        Throw "Subnet is not in correct format."
+    }
+} else {
+    # first find network
+    $route = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' } | Sort-Object RouteMetric)[0]
+    $ip = Get-NetIPAddress -InterfaceIndex $route.InterfaceIndex -AddressFamily IPv4
 
-# find first ip
-$subnet = Get-Ipv4Subnet -IPAddress $ip.IPAddress -PrefixLength $ip.PrefixLength
+    # find first ip
+    $subnet = (Get-Ipv4Subnet -IPAddress $ip.IPAddress -PrefixLength $ip.PrefixLength).CidrID
+}
+Write-Host "Scanning subnet: $subnet"
 
 #endregion
 
-..\..\..\runway.exe -N discover --json map.json --range $($subnet.CidrID)
+..\..\..\runway.exe -N discover --json map.json --range $subnet
 $map = Get-Content .\map.json | ConvertFrom-Json
 $htArr = foreach ($obj in $map.EndpointData) {
     $ht = @{}

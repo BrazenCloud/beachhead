@@ -4,5 +4,11 @@
         "Description": "Group to upload mapped assets to. Defaults to the runner's group.",
         "Type": 0,
         "IsOptional": true
+    },
+    {
+        "Name": "Subnet",
+        "Description": "Subnet to scan. Format: 192.168.0.0/24. If blank, the local subnet is used.",
+        "Type": 0,
+        "IsOptional": true
     }
 ]
