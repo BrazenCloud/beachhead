@@ -38,5 +38,8 @@
         "deployer",
         "installCheck",
         "monitor"
+    ],
+    "Get-BcJobHelper.ps1": [
+        "deployer"
     ]
 }

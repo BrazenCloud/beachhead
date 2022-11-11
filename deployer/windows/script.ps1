@@ -1,4 +1,5 @@
 #region dependencies
+. .\windows\dependencies\Get-BcJobHelper.ps1
 . .\windows\dependencies\Get-BcEndpointAssetHelper.ps1
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
@@ -9,14 +10,19 @@ Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | Conve
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 
 #region Deploy BC Agent
+$bcDeployerJobName = "Beachhead BrazenAgent Deploy"
 $ea = Get-BcEndpointAssetHelper -NoRunner -GroupId $group
 
-if ($ea.Count -gt 0) {
+# check for currently running job
+$deployerJobs = Get-BcJobByName -JobName $bcDeployerJobName | Where-Object { $_.TotalEndpointsRunning -gt 0 }
+
+# only run if there are endpoint assets and no deployer jobs already running
+if ($ea.Count -gt 0 -and $deployerJobs.Count -lt 1) {
     $set = New-BcSet
     # add runners to set
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
     $jobSplat = @{
-        Name          = "Beachhead BrazenAgent Deploy"
+        Name          = $bcDeployerJobName = "Beachhead BrazenAgent Deploy"
         GroupId       = $group
         EndpointSetId = $set
         IsEnabled     = $true
@@ -50,7 +56,20 @@ $endpointAssets = Get-BcEndpointAssetHelper -HasRunner -GroupId $group
 
 # foreach agentInstall, get runners lacking the tag and assign the job
 foreach ($atd in $agentInstalls) {
+    $agentJobName = "Beachhead Deploy: $($atd.Name)"
+
+    # Get runners to deploy to
     $toAssign = ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
+
+    # Check for existing jobs
+    $runningAssets = foreach ($agentJob in (Get-BcJobHelper -JobName $agentJobName -GroupId $group | Where-Object { $_.TotalEndpointsRunning -gt 0 })) {
+        Get-BcJobThread -JobId $agentJob.Id | Where-Object { $_.ThreadState -eq 'Running' } | Select-Object -ExpandProperty ProdigalObjectId
+    }
+    $runningAssets = $runningAssets | Select-Object -Unique
+
+    # filter out already running assets
+    $toAssign = $toAssign | Where-Object { $runningAssets -notcontains $_ }
+
     if ($toAssign.Count -gt 0) {
         $deployActions = & {
             foreach ($action in $atd.actions) {
@@ -75,7 +94,7 @@ foreach ($atd in $agentInstalls) {
         # add runners to set
         Add-BcSetToSet -TargetSetId $set -ObjectIds ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
         $jobSplat = @{
-            Name          = "Beachhead Deploy: $($atd.Name)"
+            Name          = $agentJobName
             GroupId       = $group
             EndpointSetId = $set
             IsEnabled     = $true
