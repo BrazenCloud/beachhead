@@ -7,8 +7,8 @@ Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | Conve
 #endregion
 
 #region calculate network with cidr
-if ($settings.'Subnet'.Length -gt 0) {
-    if ($subnet -match '^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$') {
+if ($settings.Subnet.Length -gt 0) {
+    if ($settings.subnet -match '^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$') {
         $subnet = $settings.'Subnet'
     } else {
         Throw "Subnet is not in correct format."
