@@ -56,19 +56,23 @@ $endpointAssets = Get-BcEndpointAssetHelper -HasRunner -GroupId $group
 
 # foreach agentInstall, get runners lacking the tag and assign the job
 foreach ($atd in $agentInstalls) {
+    Write-Host "Checking for '$($atd.Name)' deploys..."
     $agentJobName = "Beachhead Deploy: $($atd.Name)"
 
     # Get runners to deploy to
     $toAssign = ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
+    Write-Host "Total assets missing tag: $($toAssign.Count)"
 
     # Check for existing jobs
     $runningAssets = foreach ($agentJob in (Get-BcJobHelper -JobName $agentJobName -GroupId $group | Where-Object { $_.TotalEndpointsRunning -gt 0 })) {
         Get-BcJobThread -JobId $agentJob.Id | Where-Object { $_.ThreadState -eq 'Running' } | Select-Object -ExpandProperty ProdigalObjectId
     }
     $runningAssets = $runningAssets | Select-Object -Unique
+    Write-Host "Total assets already running: $($runningAssets.Count)"
 
     # filter out already running assets
     $toAssign = $toAssign | Where-Object { $runningAssets -notcontains $_ }
+    Write-Host "Total assets to assign: $($toAssign.Count)"
 
     if ($toAssign.Count -gt 0) {
         $deployActions = & {
@@ -92,7 +96,7 @@ foreach ($atd in $agentInstalls) {
         }
         $set = New-BcSet
         # add runners to set
-        Add-BcSetToSet -TargetSetId $set -ObjectIds ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
+        Add-BcSetToSet -TargetSetId $set -ObjectIds $toAssign
         $jobSplat = @{
             Name          = $agentJobName
             GroupId       = $group
