@@ -3,7 +3,7 @@
 . .\windows\dependencies\Enrollment.ps1
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 . .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
-. .\windows\dependencies\wmiexec.ps1
+#. .\windows\dependencies\wmiexec.ps1
 . .\windows\dependencies\Get-IpAddressesInRange.ps1
 #endregion
 
