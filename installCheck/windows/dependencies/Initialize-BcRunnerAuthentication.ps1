@@ -33,19 +33,18 @@ Function Initialize-BcRunnerAuthentication {
             [string]$Prerelease
         )
         $modules = Get-Module $Name -ListAvailable
-        $found = $false
         foreach ($module in $modules) {
-            if ($module.Version -eq $ModuleVersion) {
+            if ($module.Version -eq $Version) {
                 if ($PSBoundParameters.Keys -contains 'Prerelease') {
                     if ($module.PrivateData.PSData.Prerelease -eq $Prerelease) {
-                        $found = $true
+                        return $true
                     }
                 } else {
-                    $found = $true
+                    return $true
                 }
             }
         }
-        return $found
+        return $false
     }
 
     if ($PSBoundParameters.Keys -notcontains 'Settings') {
@@ -89,10 +88,8 @@ Function Initialize-BcRunnerAuthentication {
     }
 
     # set up sdk auth
-    $wp = $WarningPreference
-    $WarningPreference = 'SilentlyContinue'
-    Import-Module BrazenCloud -Version $ModuleVersion | Out-Null
-    $WarningPreference = $wp
+    Import-Module BrazenCloud -Version $ModuleVersion -DisableNameChecking -WarningAction SilentlyContinue | Out-Null
+    Get-Module BrazenCloud
     $env:BrazenCloudSessionToken = Get-BrazenCloudDaemonToken -aToken $settings.atoken -Domain $settings.host
     $env:BrazenCloudSessionToken
     $env:BrazenCloudDomain = $settings.host.split('/')[-1]
