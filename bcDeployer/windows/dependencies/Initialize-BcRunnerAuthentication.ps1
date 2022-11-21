@@ -1,7 +1,9 @@
 Function Initialize-BcRunnerAuthentication {
     [cmdletbinding()]
     param (
-        [psobject]$Settings
+        [psobject]$Settings,
+        [version]$ModuleVersion = '0.3.3',
+        [string]$Prerelease = 'beta3'
     )
     Function Get-BrazenCloudDaemonToken {
         # outputs the session token
@@ -41,8 +43,32 @@ Function Initialize-BcRunnerAuthentication {
     }
 
     # set up the BrazenCloud module
-    if (-not (Get-Module BrazenCloud -ListAvailable)) {
-        Install-Module BrazenCloud -RequiredVersion 0.3.3-beta3 -AllowPrerelease -Force
+    $modules = Get-Module BrazenCloud -ListAvailable
+    $found = $false
+    foreach ($module in $modules) {
+        if ($module.Version -eq $ModuleVersion) {
+            if ($PSBoundParameters.Keys -contains 'Prerelease') {
+                if ($module.PrivateData.PSData.Prerelease -eq $Prerelease) {
+                    $found = $true
+                }
+            } else {
+                $found = $true
+            }
+        }
+    }
+    if ($mdules.Count -eq 0 -or -not $found) {
+        $reqVersion = if ($PSBoundParameters.Keys -contains 'Prerelease') {
+            "$ModuleVersion-$Prerelease"
+        } else {
+            $ModuleVersion
+        }
+        $splat = @{
+            Name            = 'BrazenCloud'
+            RequiredVersion = $reqVersion
+            AllowPrerelease = ($PSBoundParameters.Keys -contains 'Prerelease')
+            Force           = $true
+        }
+        Install-Module @splat
     }
 
     # set up sdk auth
