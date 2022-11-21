@@ -66,23 +66,25 @@ Function Initialize-BcRunnerAuthentication {
     }
 
     if (-not (Test-ModulePresent -Name PowerShellGet -Version 2.2.5)) {
+        Write-Host 'Updating PowerShellGet...'
         Install-Module PowerShellGet -RequiredVersion 2.2.5 -Force
         Import-Module PowerShellGet -Version 2.2.5
     }
 
     # set up the BrazenCloud module
-    if (-not (Test-ModulePresent -Name BrazenCloud -Version 0.3.3 -Prerelease beta3)) {
-        $reqVersion = if ($PSBoundParameters.Keys -contains 'Prerelease') {
+    if (-not (Test-ModulePresent -Name BrazenCloud -Version $ModuleVersion -Prerelease $Prerelease)) {
+        $reqVersion = if ($Prerelease.Length -gt 0) {
             "$ModuleVersion-$Prerelease"
         } else {
-            $ModuleVersion
+            $ModuleVersion.ToString()
         }
         $splat = @{
             Name            = 'BrazenCloud'
             RequiredVersion = $reqVersion
-            AllowPrerelease = ($PSBoundParameters.Keys -contains 'Prerelease')
+            AllowPrerelease = ($Prerelease.Length -gt 0)
             Force           = $true
         }
+        $splat | ConvertTo-Json
         Install-Module @splat
     }
 
