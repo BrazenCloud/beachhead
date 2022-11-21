@@ -84,13 +84,14 @@ Function Initialize-BcRunnerAuthentication {
             AllowPrerelease = ($Prerelease.Length -gt 0)
             Force           = $true
         }
+        $splat | ConvertTo-Json
         Install-Module @splat
     }
 
     # set up sdk auth
     $wp = $WarningPreference
     $WarningPreference = 'SilentlyContinue'
-    Import-Module BrazenCloud | Out-Null
+    Import-Module BrazenCloud -Version $ModuleVersion | Out-Null
     $WarningPreference = $wp
     $env:BrazenCloudSessionToken = Get-BrazenCloudDaemonToken -aToken $settings.atoken -Domain $settings.host
     $env:BrazenCloudSessionToken
