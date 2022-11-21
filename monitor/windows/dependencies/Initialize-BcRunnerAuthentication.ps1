@@ -42,7 +42,7 @@ Function Initialize-BcRunnerAuthentication {
 
     # set up the BrazenCloud module
     if (-not (Get-Module BrazenCloud -ListAvailable)) {
-        Install-Module BrazenCloud -MinimumVersion 0.3.2 -Force
+        Install-Module BrazenCloud -RequiredVersion 0.3.3-beta3 -AllowPrerelease -Force
     }
 
     # set up sdk auth
