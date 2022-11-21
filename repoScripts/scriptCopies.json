@@ -1,26 +1,10 @@
 {
-    "Invoke-BcBulkDatastoreInsert2.ps1": [
-        "monitor"
-    ],
-    "Invoke-BcQueryDatastore2.ps1": [
-        "assessor",
-        "bcDeployer",
-        "deployer",
-        "monitor"
-    ],
     "Get-InstalledSoftware.ps1": [
         "installCheck"
-    ],
-    "Get-BcEndpointAssetHelper.ps1": [
-        "deployer",
-        "bcDeployer"
     ],
     "subnets.ps1": [
         "assessor",
         "assetDiscover"
-    ],
-    "Remove-BcDatastoreQuery2.ps1": [
-        "monitor"
     ],
     "Enrollment.ps1": [
         "bcDeployer"
@@ -38,8 +22,5 @@
         "deployer",
         "installCheck",
         "monitor"
-    ],
-    "Get-BcJobHelper.ps1": [
-        "deployer"
     ]
 }

@@ -1,8 +1,5 @@
 #region dependencies
-. .\windows\dependencies\Remove-BcDatastoreQuery2.ps1
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
-. .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
-. .\windows\dependencies\Invoke-BcBulkDatastoreInsert2.ps1
 #endregion
 
 Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json)
@@ -10,8 +7,8 @@ Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | Conve
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 
 # Clean indexes
-Remove-BcDatastoreQuery2 -GroupId $group -IndexName 'beachheadcoverage' -Query @{query = @{match_all = @{} } }
-Remove-BcDatastoreQuery2 -GroupId $group -IndexName 'beachheadcoveragesummary' -Query @{query = @{match_all = @{} } }
+Remove-BcDatastoreQuery -GroupId $group -IndexName 'beachheadcoverage' -Query '{"query": {"match_all": {} } }'
+Remove-BcDatastoreQuery -GroupId $group -IndexName 'beachheadcoveragesummary' -Query '{"query": {"match_all": {} } }'
 
 #calculate runner coverage
 $skip = 0
@@ -61,7 +58,7 @@ $coverageSummary = @{
 }
 
 #foreach agent deploy, calculate coverage
-$agentInstalls = Invoke-BcQueryDatastore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
+$agentInstalls = Invoke-BcQueryDataStore -GroupId $group -Query '{ "query_string": { "query": "agentInstall", "default_field": "type" } }' -IndexName beachheadconfig
 foreach ($ai in $agentInstalls) {
     $installCount = ($endpointAssets | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
     $coverageSummary['counts']["$($ai.Name.Replace(' ',''))Installs"] = $installCount
@@ -81,7 +78,7 @@ $coverageSummary | ConvertTo-Json -Depth 10 -Compress
 
 $coverageSummary | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReportSummary.json
 
-Invoke-BcBulkDatastoreInsert2 -GroupId $group -IndexName 'beachheadcoveragesummary' -Data $coverageSummary
+Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoveragesummary' -Data ($coverageSummary | ForEach-Object { ConvertTo-Json -Compress })
 
 $coverageReport = foreach ($ea in $endpointAssets) {
     $ht = @{
@@ -94,5 +91,5 @@ $coverageReport = foreach ($ea in $endpointAssets) {
     }
     $ht
 }
-Invoke-BcBulkDatastoreInsert2 -GroupId $group -IndexName 'beachheadcoverage' -Data $coverageReport
+Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoverage' -Data ($coverageReport | ForEach-Object { ConvertTo-Json -Compress })
 $coverageReport | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReport.json

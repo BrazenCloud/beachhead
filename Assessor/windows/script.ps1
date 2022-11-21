@@ -1,7 +1,6 @@
 #region dependencies
-. .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
-. .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 . .\windows\dependencies\subnets.ps1
+. .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 #endregion
 
 Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json)

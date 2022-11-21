@@ -1,8 +1,5 @@
 #region dependencies
-. .\windows\dependencies\Get-BcJobHelper.ps1
-. .\windows\dependencies\Get-BcEndpointAssetHelper.ps1
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
-. .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 #endregion
 
 Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json)
@@ -49,7 +46,7 @@ if ($ea.Count -gt 0 -and $deployerJobs.Count -lt 1) {
 #region Deploy other required agents
 # Get agents to deploy
 $installCheck = (Get-BcRepository -Name 'beachhead:installCheck').Id
-$agentInstalls = Invoke-BcQueryDatastore2 -GroupId $group -Query @{query_string = @{query = 'agentInstall'; default_field = 'type' } } -IndexName beachheadconfig
+$agentInstalls = Invoke-BcQueryDataStore -GroupId $group -Query '{"query_string" : {"query" : "agentInstall", "default_field" : "type" } }' -IndexName beachheadconfig
 
 # Get all endpointassets w/runner in current group
 $endpointAssets = Get-BcEndpointAssetHelper -HasRunner -GroupId $group
@@ -64,7 +61,7 @@ foreach ($atd in $agentInstalls) {
     Write-Host "Total assets missing tag: $($toAssign.Count)"
 
     # Check for existing jobs
-    $runningAssets = foreach ($agentJob in (Get-BcJobHelper -JobName $agentJobName -GroupId $group | Where-Object { $_.TotalEndpointsRunning -gt 0 })) {
+    $runningAssets = foreach ($agentJob in (Get-BcJobByName -JobName $agentJobName -GroupId $group | Where-Object { $_.TotalEndpointsRunning -gt 0 })) {
         Get-BcJobThread -JobId $agentJob.Id | Where-Object { $_.ThreadState -eq 'Running' } | Select-Object -ExpandProperty ProdigalObjectId
     }
     $runningAssets = $runningAssets | Select-Object -Unique
