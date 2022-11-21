@@ -25,6 +25,29 @@ Function Initialize-BcRunnerAuthentication {
         }
     }
 
+    Function Test-ModulePresent {
+        [CmdletBinding()]
+        param (
+            [string]$Name,
+            [version]$Version,
+            [string]$Prerelease
+        )
+        $modules = Get-Module $Name -ListAvailable
+        $found = $false
+        foreach ($module in $modules) {
+            if ($module.Version -eq $ModuleVersion) {
+                if ($PSBoundParameters.Keys -contains 'Prerelease') {
+                    if ($module.PrivateData.PSData.Prerelease -eq $Prerelease) {
+                        $found = $true
+                    }
+                } else {
+                    $found = $true
+                }
+            }
+        }
+        return $found
+    }
+
     if ($PSBoundParameters.Keys -notcontains 'Settings') {
         if (Test-Path .\settings.json) {
             $Settings = Get-Content .\settings.json | ConvertFrom-Json
@@ -42,21 +65,13 @@ Function Initialize-BcRunnerAuthentication {
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Confirm:$false -Force -Verbose
     }
 
-    # set up the BrazenCloud module
-    $modules = Get-Module BrazenCloud -ListAvailable
-    $found = $false
-    foreach ($module in $modules) {
-        if ($module.Version -eq $ModuleVersion) {
-            if ($PSBoundParameters.Keys -contains 'Prerelease') {
-                if ($module.PrivateData.PSData.Prerelease -eq $Prerelease) {
-                    $found = $true
-                }
-            } else {
-                $found = $true
-            }
-        }
+    if (-not (Test-ModulePresent -Name PowerShellGet -Version 2.2.5)) {
+        Install-Module PowerShellGet -RequiredVersion 2.2.5 -Force
+        Import-Module PowerShellGet -Version 2.2.5
     }
-    if ($mdules.Count -eq 0 -or -not $found) {
+
+    # set up the BrazenCloud module
+    if (-not (Test-ModulePresent -Name BrazenCloud -Version 0.3.3 -Prerelease beta3)) {
         $reqVersion = if ($PSBoundParameters.Keys -contains 'Prerelease') {
             "$ModuleVersion-$Prerelease"
         } else {
