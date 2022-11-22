@@ -91,5 +91,5 @@ $coverageReport = foreach ($ea in $endpointAssets) {
     }
     $ht
 }
-Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoverage' -Data ($coverageReport | ForEach-Object { ConvertTo-Json -Compress })
+Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoverage' -Data ($coverageReport | ForEach-Object { $_ | ConvertTo-Json -Compress })
 $coverageReport | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReport.json
