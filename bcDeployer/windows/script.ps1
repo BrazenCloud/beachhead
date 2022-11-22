@@ -2,12 +2,11 @@
 . .\windows\dependencies\Get-BcEndpointAssetHelper.ps1
 . .\windows\dependencies\Enrollment.ps1
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
-. .\windows\dependencies\Invoke-BcQueryDatastore2.ps1
 #. .\windows\dependencies\wmiexec.ps1
 . .\windows\dependencies\Get-IpAddressesInRange.ps1
 #endregion
 
-Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json)
+Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json) -WarningAction SilentlyContinue
 
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 

@@ -2,13 +2,13 @@
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 #endregion
 
-Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json)
+Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json) -WarningAction SilentlyContinue
 
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 
 # Clean indexes
-Remove-BcDatastoreQuery -GroupId $group -IndexName 'beachheadcoverage' -Query '{"query": {"match_all": {} } }'
-Remove-BcDatastoreQuery -GroupId $group -IndexName 'beachheadcoveragesummary' -Query '{"query": {"match_all": {} } }'
+Remove-BcDataStore -GroupId $group -IndexName 'beachheadcoverage' -DeleteQuery '{"query": {"match_all": {} } }'
+#Remove-BcDatastore -GroupId $group -IndexName 'beachheadcoveragesummary' -DeleteQuery '{"query": {"match_all": {} } }'
 
 #calculate runner coverage
 $skip = 0
@@ -58,7 +58,7 @@ $coverageSummary = @{
 }
 
 #foreach agent deploy, calculate coverage
-$agentInstalls = Invoke-BcQueryDataStore -GroupId $group -Query '{ "query_string": { "query": "agentInstall", "default_field": "type" } }' -IndexName beachheadconfig
+$agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query_string": { "query": "agentInstall", "default_field": "type" } }' -IndexName beachheadconfig
 foreach ($ai in $agentInstalls) {
     $installCount = ($endpointAssets | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
     $coverageSummary['counts']["$($ai.Name.Replace(' ',''))Installs"] = $installCount
@@ -78,7 +78,7 @@ $coverageSummary | ConvertTo-Json -Depth 10 -Compress
 
 $coverageSummary | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReportSummary.json
 
-Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoveragesummary' -Data ($coverageSummary | ForEach-Object { ConvertTo-Json -Compress })
+Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoveragesummary' -Data ($coverageSummary | ForEach-Object { $_ | ConvertTo-Json -Compress -Depth 10 })
 
 $coverageReport = foreach ($ea in $endpointAssets) {
     $ht = @{

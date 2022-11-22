@@ -3,7 +3,7 @@ Function Initialize-BcRunnerAuthentication {
     param (
         [psobject]$Settings,
         [version]$ModuleVersion = '0.3.3',
-        [string]$Prerelease = 'beta3'
+        [string]$Prerelease = 'beta4'
     )
     Function Get-BrazenCloudDaemonToken {
         # outputs the session token
@@ -88,9 +88,8 @@ Function Initialize-BcRunnerAuthentication {
     }
 
     # set up sdk auth
-    Import-Module BrazenCloud -Version $ModuleVersion -DisableNameChecking -WarningAction SilentlyContinue | Out-Null
+    Import-Module BrazenCloud -Version $ModuleVersion -WarningAction SilentlyContinue
     Get-Module BrazenCloud
     $env:BrazenCloudSessionToken = Get-BrazenCloudDaemonToken -aToken $settings.atoken -Domain $settings.host
-    $env:BrazenCloudSessionToken
     $env:BrazenCloudDomain = $settings.host.split('/')[-1]
 }

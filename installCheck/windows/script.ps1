@@ -3,7 +3,7 @@
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 #endregion
 
-Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json)
+Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json) -WarningAction SilentlyContinue
 
 # update nuget, if necessary
 $v = (Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyContinue).Version

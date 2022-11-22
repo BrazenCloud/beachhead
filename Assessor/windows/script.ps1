@@ -3,16 +3,23 @@
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 #endregion
 
-Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json)
+Write-Host 'Initializing authentication...'
+Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json) -WarningAction SilentlyContinue
 
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 
+# Clean indexes
+Remove-BcDataStore -GroupId $group -IndexName 'beachheadcoverage' -DeleteQuery '{"query": {"match_all": {} } }'
+Remove-BcDataStore -GroupId $group -IndexName 'beachheadcoveragesummary' -DeleteQuery '{"query": {"match_all": {} } }'
+
 # apply job tags
+Write-Host 'Applying job tags...'
 $set = New-BcSet
-Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.job_id
-Add-BcTag -SetId $set -Tags 'Beachhead', 'Assessor'
+Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.job_id | Out-Null
+Add-BcTag -SetId $set -Tags 'Beachhead', 'Assessor' | Out-Null
 
 #region Initiate asset discovery
+Write-Host 'Initiating asset discovery job...'
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
 $assetdiscoverSplat = @{
@@ -88,6 +95,7 @@ Write-Host "Created autodeploy job with ID: $($job.JobId)"
 #region Initiate periodic jobs
 
 #region Initiate deployer
+Write-Host 'Initiating deploy job...'
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
 $deployerSplat = @{
@@ -113,6 +121,7 @@ Write-Host "Created job: Beachhead Deployer"
 #endregion
 
 #region Initiate monitor
+Write-Host 'Initiating monitor job...'
 $set = New-BcSet
 Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
 $monitorSplat = @{

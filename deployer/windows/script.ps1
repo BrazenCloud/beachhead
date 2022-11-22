@@ -2,7 +2,7 @@
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 #endregion
 
-Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json)
+Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json) -WarningAction SilentlyContinue
 
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 
@@ -46,7 +46,7 @@ if ($ea.Count -gt 0 -and $deployerJobs.Count -lt 1) {
 #region Deploy other required agents
 # Get agents to deploy
 $installCheck = (Get-BcRepository -Name 'beachhead:installCheck').Id
-$agentInstalls = Invoke-BcQueryDataStore -GroupId $group -Query '{"query_string" : {"query" : "agentInstall", "default_field" : "type" } }' -IndexName beachheadconfig
+$agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{"query_string" : {"query" : "agentInstall", "default_field" : "type" } }' -IndexName beachheadconfig
 
 # Get all endpointassets w/runner in current group
 $endpointAssets = Get-BcEndpointAssetHelper -HasRunner -GroupId $group
