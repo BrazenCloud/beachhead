@@ -52,7 +52,7 @@ $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{"q
 $endpointAssets = Get-BcEndpointAssetHelper -HasRunner -GroupId $group
 
 # foreach agentInstall, get runners lacking the tag and assign the job
-foreach ($atd in $agentInstalls) {
+:atd foreach ($atd in $agentInstalls) {
     Write-Host "Checking for '$($atd.Name)' deploys..."
     $agentJobName = "Beachhead Deploy: $($atd.Name)"
 
@@ -61,8 +61,15 @@ foreach ($atd in $agentInstalls) {
     Write-Host "Total assets missing tag: $($toAssign.Count)"
 
     # Check for existing jobs
-    $runningAssets = foreach ($agentJob in (Get-BcJobByName -JobName $agentJobName -GroupId $group | Where-Object { $_.TotalEndpointsRunning -gt 0 })) {
-        Get-BcJobThread -JobId $agentJob.Id | Where-Object { $_.ThreadState -eq 'Running' } | Select-Object -ExpandProperty ProdigalObjectId
+    $runningAssets = foreach ($agentJob in (Get-BcJobByName -JobName $agentJobName -GroupId $group | Where-Object { $_.TotalEndpointsFinished -lt $_.TotalEndpointsRunning })) {
+        $threads = Get-BcJobThread -JobId $agentJob.Id | Where-Object { $_.ThreadState -eq 'Running' } | Select-Object -ExpandProperty ProdigalObjectId
+        if ($null -eq $threads -and $agentJob.TotalEndpointsFinished -eq 0 -and $agentJob.TotalEndpointsRunning -eq 0 -and $toAssign.Count -eq $agentJob.TotalEndpointsAssigned) {
+            # might be an invalid job
+            Write-Host 'Possible invalid job detected.'
+            continue atd
+        } else {
+            $threads
+        }
     }
     $runningAssets = $runningAssets | Select-Object -Unique
     Write-Host "Total assets already running: $($runningAssets.Count)"
@@ -74,10 +81,7 @@ foreach ($atd in $agentInstalls) {
     if ($toAssign.Count -gt 0) {
         $deployActions = & {
             foreach ($action in $atd.actions) {
-                $settingsHt = @{}
-                foreach ($prop in $action.settings.psobject.Properties.Name) {
-                    $settingsHt[$prop] = $action.Settings.$prop
-                }
+                [hashtable]$settingsHt = $action.settings
                 @{
                     RepositoryActionId = (Get-BcRepository -Name $action.name).Id
                     Settings           = $settingsHt
