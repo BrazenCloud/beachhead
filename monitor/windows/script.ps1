@@ -43,7 +43,7 @@ while ($endpointAssets.Count -lt $ea.FilteredCount) {
     [BrazenCloudSdk.PowerShell.Models.IEndpointAssetQueryView[]]$endpointAssets += $ea.Items
 }
 
-$lastUpdate = (Get-Date).ToString()
+$lastUpdate = Get-Date
 
 $coverageSummary = @{
     LastUpdate          = $lastUpdate
@@ -58,7 +58,7 @@ $coverageSummary = @{
 }
 
 #foreach agent deploy, calculate coverage
-$agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query_string": { "query": "agentInstall", "default_field": "type" } }' -IndexName beachheadconfig
+$agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName beachheadconfig
 foreach ($ai in $agentInstalls) {
     $installCount = ($endpointAssets | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
     $coverageSummary['counts']["$($ai.Name.Replace(' ',''))Installs"] = $installCount
