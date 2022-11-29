@@ -1,6 +1,6 @@
 #region dependencies
-. .\windows\dependencies\subnets.ps1
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
+. .\windows\dependencies\subnets.ps1
 #endregion
 
 Write-Host 'Initializing authentication...'

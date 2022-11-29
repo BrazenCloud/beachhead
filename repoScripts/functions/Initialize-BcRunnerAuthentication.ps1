@@ -3,7 +3,7 @@ Function Initialize-BcRunnerAuthentication {
     param (
         [psobject]$Settings,
         [version]$ModuleVersion = '0.3.3',
-        [string]$Prerelease = 'beta4'
+        [string]$Prerelease = 'beta5'
     )
     Function Get-BrazenCloudDaemonToken {
         # outputs the session token
