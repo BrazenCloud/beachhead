@@ -9,8 +9,13 @@ Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | Conve
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 
 # Clean indexes
-Remove-BcDataStoreEntry -GroupId $group -IndexName 'beachheadcoverage' -DeleteQuery '{"query": {"match_all": {} } }'
-Remove-BcDataStoreEntry -GroupId $group -IndexName 'beachheadcoveragesummary' -DeleteQuery '{"query": {"match_all": {} } }'
+$existingIndexes = Get-BcDataStoreIndex
+if ($existingIndexes -contains 'beachheadcoverage') {
+    Remove-BcDatastoreIndex -GroupId $group -IndexName 'beachheadcoverage'
+}
+if ($existingIndexes -contains 'beachheadcoveragesummary') {
+    Remove-BcDatastoreIndex -GroupId $group -IndexName 'beachheadcoveragesummary'
+}
 
 # apply job tags
 Write-Host 'Applying job tags...'
