@@ -9,12 +9,12 @@ Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | Conve
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 
 # Clean indexes
-$existingIndexes = Get-BcDataStoreIndex
+$existingIndexes = Get-BcDataStoreIndex -GroupId $group
 if ($existingIndexes -contains 'beachheadcoverage') {
-    Remove-BcDatastoreIndex -GroupId $group -IndexName 'beachheadcoverage'
+    Remove-BcDataStoreIndex -GroupId $group -IndexName 'beachheadcoverage'
 }
 if ($existingIndexes -contains 'beachheadcoveragesummary') {
-    Remove-BcDatastoreIndex -GroupId $group -IndexName 'beachheadcoveragesummary'
+    Remove-BcDataStoreIndex -GroupId $group -IndexName 'beachheadcoveragesummary'
 }
 
 # apply job tags
