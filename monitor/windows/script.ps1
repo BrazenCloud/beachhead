@@ -43,7 +43,7 @@ while ($endpointAssets.Count -lt $ea.FilteredCount) {
     [BrazenCloudSdk.PowerShell.Models.IEndpointAssetQueryView[]]$endpointAssets += $ea.Items
 }
 
-$lastUpdate = Get-Date
+$lastUpdate = Get-Date -Format "o"
 
 $coverageSummary = @{
     LastUpdate          = $lastUpdate
