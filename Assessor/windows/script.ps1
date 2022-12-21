@@ -47,12 +47,13 @@ $assetdiscoverSplat = @{
         @{
             RepositoryActionId = (Get-BcRepository -Name 'beachhead:assetDiscover').Id
             Settings           = @{
-                "Group ID" = $group
-                "Subnet"   = if ($settings.'Subnet to Scan'.Length -gt 0) {
+                "Group ID"         = $group
+                "Subnet"           = if ($settings.'Subnet to Scan'.Length -gt 0) {
                     $settings.'Subnet To Scan'
                 } else {
                     $null
                 }
+                "Use PowerShell 7" = ($settings.'Use PowerShell 7'.ToString() -eq 'true')
             }
         }
     )
@@ -122,6 +123,9 @@ $deployerSplat = @{
     Actions       = @(
         @{
             RepositoryActionId = (Get-BcRepository -Name 'beachhead:deployer').Id
+            Settings           = @{
+                "Use PowerShell 7" = ($settings.'Use PowerShell 7'.ToString() -eq 'true')
+            }
         }
     )
     Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes $settings.'Deployer Interval'
@@ -148,6 +152,9 @@ $monitorSplat = @{
     Actions       = @(
         @{
             RepositoryActionId = (Get-BcRepository -Name 'beachhead:monitor').Id
+            Settings           = @{
+                "Use PowerShell 7" = ($settings.'Use PowerShell 7'.ToString() -eq 'true')
+            }
         }
     )
     Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes $settings.'Monitor Interval'
