@@ -68,46 +68,6 @@ Add-BcTag -SetId $set -Tags 'Beachhead', 'AssetDiscovery'
 Write-Host "Created Asset discovery job with ID: $($job.JobId)"
 #endregion
 
-<#region Initiate autodeploy
-# https://docs.microsoft.com/en-us/powershell/module/nettcpip/get-netroute?view=windowsserver2022-ps#example-5-get-ip-routes-to-non-local-destinations
-<#
-$internetRoute = Get-NetRoute | Where-Object -FilterScript { $_.NextHop -Ne "::" } | Where-Object -FilterScript { $_.NextHop -Ne "0.0.0.0" } | Where-Object -FilterScript { ($_.NextHop.SubString(0, 6) -Ne "fe80::") } | Sort-Object InterfaceMetric | Select-Object -First 1
-$ipconfig = Get-NetIPConfiguration -InterfaceIndex $internetRoute.InterfaceIndex
-$subnet = Get-IPv4Subnet -IPAddress $ipconfig.IPv4Address.IPAddress -PrefixLength $ipconfig.IPv4Address.PrefixLength
-#
-
-# hard coding /24 for demos.
-$internetRoute = Get-NetRoute | Where-Object -FilterScript { $_.NextHop -Ne "::" } | Where-Object -FilterScript { $_.NextHop -Ne "0.0.0.0" } | Where-Object -FilterScript { ($_.NextHop.SubString(0, 6) -Ne "fe80::") } | Sort-Object InterfaceMetric | Select-Object -First 1
-$ipconfig = Get-NetIPConfiguration -InterfaceIndex $internetRoute.InterfaceIndex
-$subnet = Get-IPv4Subnet -IPAddress $ipconfig.IPv4Address.IPAddress -PrefixLength 24
-
-$set = New-BcSet
-Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
-$autodeploySplat = @{
-    Name          = 'Beachhead Autodeploy'
-    GroupId       = $group
-    EndpointSetId = $set
-    IsEnabled     = $true
-    IsHidden      = $false
-    Actions       = @(
-        @{
-            RepositoryActionId = (Get-BcRepository -Name 'deploy:runway').Id
-            Settings           = @{
-                "Enrollment Token" = (New-BcEnrollmentSession -Type 'EnrollPersistentRunner' -Expiration (Get-Date).AddDays(30) -GroupId $group -IsOneTime:$false).Token
-                "IP Range"         = "$($subnet.FirstHostIP)-$($subnet.LastHostIP)"
-            }
-        }
-    )
-    Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes $settings.'Autodeploy Interval'
-}
-$job = New-BcJob @autodeploySplat
-$set = New-BcSet
-Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
-Add-BcTag -SetId $set -Tags 'Beachhead', 'AutoDeploy'
-
-Write-Host "Created autodeploy job with ID: $($job.JobId)"
-#endregion#>
-
 #region Initiate periodic jobs
 
 #region Initiate deployer
