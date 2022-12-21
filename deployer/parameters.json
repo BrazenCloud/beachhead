@@ -1,0 +1,8 @@
+[
+    {
+        "Name": "Use PowerShell 7",
+        "Description": "If checked, the process will utilize PowerShell 7 on the Beachhead device.",
+        "Type": 2,
+        "IsOptional": true
+    }
+]

@@ -3,8 +3,18 @@
 . .\windows\dependencies\subnets.ps1
 #endregion
 
+$settings = Get-Content .\settings.json | ConvertFrom-Json
+
+#region PowerShell 7
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    if ($settings.'Use PowerShell 7'.ToString() -eq 'true') {
+        pwsh.exe -ExecutionPolicy Bypass -File $($MyInvocation.MyCommand.Definition)
+    }
+}
+#endregion
+
 Write-Host 'Initializing authentication...'
-Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json) -WarningAction SilentlyContinue
+Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
 
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 

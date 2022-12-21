@@ -6,7 +6,17 @@
 . .\windows\dependencies\Get-IpAddressesInRange.ps1
 #endregion
 
-Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json) -WarningAction SilentlyContinue
+$settings = Get-Content .\settings.json | ConvertFrom-Json
+
+#region PowerShell 7
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    if ($settings.'Use PowerShell 7'.ToString() -eq 'true') {
+        pwsh.exe -ExecutionPolicy Bypass -File $($MyInvocation.MyCommand.Definition)
+    }
+}
+#endregion
+
+Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
 
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 
