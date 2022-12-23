@@ -1,39 +1,27 @@
 #region dependencies
-. .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
+. .\windows\dependencies\TaggingPSv2.ps1
+. .\windows\dependencies\Initialize-BcRunnerAuthenticationPSv2.ps1
+. .\windows\dependencies\Invoke-WebRequestPSv2.ps1
+. .\windows\dependencies\Get-JsonValuePSv2.ps1
 . .\windows\dependencies\Get-InstalledSoftware.ps1
 #endregion
 
-Initialize-BcRunnerAuthentication -Settings (Get-Content .\settings.json | ConvertFrom-Json) -WarningAction SilentlyContinue
+$settings = Get-Content .\settings.json
+$atoken = Get-JsonValuePSv2 -Json $settings -Property 'aToken'
+$bchost = Get-JsonValuePSv2 -Json $settings -Property 'host'
+$pobjId = Get-JsonValuePSv2 -Json $settings -Property 'prodigal_object_id'
+$sname = Get-JsonValuePSv2 -Json $settings -Property 'Name'
+$tag = Get-JsonValuePSv2 -Json $settings -Property 'Tag if installed'
 
-# update nuget, if necessary
-$v = (Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyContinue).Version
-if ($null -eq $v -or $v -lt 2.8.5.201) {
-    Write-Host 'Updating NuGet...'
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Confirm:$false -Force -Verbose
-}
-
-# set up the BrazenCloud module
-if (-not (Get-Module BrazenCloud -ListAvailable)) {
-    Install-Module BrazenCloud -MinimumVersion 0.3.2 -Force
-}
-$wp = $WarningPreference
-$WarningPreference = 'SilentlyContinue'
-Import-Module BrazenCloud | Out-Null
-$WarningPreference = $wp
-$env:BrazenCloudSessionToken = Get-BrazenCloudDaemonToken -aToken $settings.atoken -Domain $settings.host
-$env:BrazenCloudSessionToken
-$env:BrazenCloudDomain = $settings.host.split('/')[-1]
-
+Initialize-BcRunnerAuthenticationPSv2 -aToken $atoken -Domain $bchost.split('/')[-1]
 #endregion
 
 #region apply tag
-. .\windows\dependencies\Get-InstalledSoftware.ps1
-
-$sw = Get-InstalledSoftware | Where-Object { $_.Name -like $settings.Name }
+$sw = Get-InstalledSoftware | Where-Object { $_.Name -like $sname }
 if ($null -ne $sw) {
-    $set = New-BcSet
-    Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id
-    Add-BcTag -SetId $set -Tags $settings.'Tag if installed'
+    $set = New-BcSetPSv2
+    Add-BcSetToSetPSv2 -TargetSetId $set -ObjectIds $pobjId
+    Add-BcTagPSv2 -SetId $set -Tags $tag
 }
 
 #endregion
