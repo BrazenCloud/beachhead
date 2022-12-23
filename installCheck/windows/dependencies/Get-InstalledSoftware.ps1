@@ -4,8 +4,8 @@ Function Get-InstalledSoftware {
     # Script
     $searchKeys = "Software\Microsoft\Windows\CurrentVersion\Uninstall", "SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
     $hives = @{}
-    $hives['CurrentUser'] = [Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::CurrentUser, [Microsoft.Win32.RegistryView]::Default)
-    $hives['LocalMachine'] = [Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine, [Microsoft.Win32.RegistryView]::Default)
+    $hives['CurrentUser'] = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey([Microsoft.Win32.RegistryHive]::CurrentUser, $env:COMPUTERNAME)
+    $hives['LocalMachine'] = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine, $env:COMPUTERNAME)
     $masterKeys = & {
         foreach ($key in $searchKeys) {
             foreach ($hive in $hives.Keys) {
@@ -13,7 +13,7 @@ Function Get-InstalledSoftware {
                 if ($regKey -ne $null) {
                     foreach ($subName in $regKey.GetSubkeyNames()) {
                         foreach ($sub in $regKey.OpenSubkey($subName)) {
-                            [pscustomobject]@{
+                            New-Object PSObject -Property @{
                                 "Name"             = $sub.GetValue("displayname")
                                 "SystemComponent"  = $sub.GetValue("systemcomponent")
                                 "ParentKeyName"    = $sub.GetValue("parentkeyname")
