@@ -1,7 +1,8 @@
-Function Initialize-BcRunnerAuthentication {
+Function Initialize-BcRunnerAuthenticationPSv2 {
     [cmdletbinding()]
     param (
-        [psobject]$Settings
+        [string]$aToken,
+        [string]$Domain
     )
     Function Get-BrazenCloudDaemonToken {
         # outputs the session token
@@ -12,7 +13,7 @@ Function Initialize-BcRunnerAuthentication {
             [string]$Domain
         )
 
-        $resp = Invoke-WebRequestPSv2 -RawResponse -Uri "$Domain/api/v2/auth/ping" -Headers @{
+        $resp = Invoke-WebRequestPSv2 -RawResponse -Uri "https://$Domain/api/v2/auth/ping" -Headers @{
             Authorization = "Daemon $aToken"
         }
 
@@ -24,17 +25,7 @@ Function Initialize-BcRunnerAuthentication {
         }
     }
 
-    if ($PSBoundParameters.Keys -notcontains 'Settings') {
-        if (Test-Path .\settings.json) {
-            $Settings = Get-Content .\settings.json | ConvertFrom-Json
-        } else {
-            Throw 'Unable to load settings. Missing .\settings.json or the -Settings parameter.'
-        }
-    }
-
-    $global:settings = $Settings
-
     # set up sdk auth
-    $env:BrazenCloudSessionToken = Get-BrazenCloudDaemonToken -aToken $settings.atoken -Domain $settings.host
-    $env:BrazenCloudDomain = $settings.host.split('/')[-1]
+    $env:BrazenCloudSessionToken = Get-BrazenCloudDaemonToken -aToken $aToken -Domain $Domain
+    $env:BrazenCloudDomain = $Domain
 }
