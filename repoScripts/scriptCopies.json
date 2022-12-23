@@ -20,7 +20,18 @@
         "assetDiscover",
         "bcDeployer",
         "deployer",
-        "installCheck",
         "monitor"
+    ],
+    "Initialize-BcRunnerAuthenticationPSv2.ps1": [
+        "installCheck"
+    ],
+    "TaggingPSv2.ps1": [
+        "installCheck"
+    ],
+    "Invoke-WebRequestPSv2.ps1": [
+        "installCheck"
+    ],
+    "Get-JsonValuePSv2.ps1": [
+        "installCheck"
     ]
 }
