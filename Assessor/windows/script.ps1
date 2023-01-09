@@ -1,6 +1,6 @@
 #region dependencies
-. .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 . .\windows\dependencies\subnets.ps1
+. .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 #endregion
 
 $settings = Get-Content .\settings.json | ConvertFrom-Json
@@ -48,8 +48,8 @@ $assetdiscoverSplat = @{
             RepositoryActionId = (Get-BcRepository -Name 'beachhead:assetDiscover').Id
             Settings           = @{
                 "Group ID"         = $group
-                "Subnet"           = if ($settings.'Subnet to Scan'.Length -gt 0) {
-                    $settings.'Subnet To Scan'
+                "Targets"          = if ($settings.'Targets'.Length -gt 0) {
+                    $settings.'Targets'
                 } else {
                     $null
                 }

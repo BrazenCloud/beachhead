@@ -5,14 +5,8 @@
         "IsOptional": false
     },
     {
-        "Name": "IP Range",
-        "Description": "Range of IPs in format: IP-IP",
-        "Type": 0,
-        "IsOptional": true
-    },
-    {
-        "Name": "IPs",
-        "Description": "Comma separated list of IPs.",
+        "Name": "Targets",
+        "Description": "If left blank, the local subnet will be used. Accepts IPs, IP ranges, and CIDRs. All separated by commas.",
         "Type": 0,
         "IsOptional": true
     },

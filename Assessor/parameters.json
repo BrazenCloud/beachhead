@@ -14,8 +14,8 @@
         "IsOptional": false
     },
     {
-        "Name": "Subnet to Scan",
-        "Description": "If left blank, the local subnet will be dynamically determined.",
+        "Name": "Targets",
+        "Description": "If left blank, the local subnet will be used. Accepts IPs, IP ranges, and CIDRs. All separated by commas.",
         "Type": 0,
         "IsOptional": true
     },

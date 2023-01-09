@@ -6,8 +6,8 @@
         "IsOptional": true
     },
     {
-        "Name": "Subnet",
-        "Description": "Subnet to scan. Format: 192.168.0.0/24. If blank, the local subnet is used.",
+        "Name": "Targets",
+        "Description": "If left blank, the local subnet will be used. Accepts IPs, IP ranges, and CIDRs. All separated by commas.",
         "Type": 0,
         "IsOptional": true
     },

@@ -4,7 +4,8 @@
     ],
     "subnets.ps1": [
         "assessor",
-        "assetDiscover"
+        "assetDiscover",
+        "bcDeployer"
     ],
     "Enrollment.ps1": [
         "bcDeployer"

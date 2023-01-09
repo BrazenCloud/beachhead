@@ -4,6 +4,7 @@
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 #. .\windows\dependencies\wmiexec.ps1
 . .\windows\dependencies\Get-IpAddressesInRange.ps1
+. .\windows\dependencies\subnets.ps1
 #endregion
 
 $settings = Get-Content .\settings.json | ConvertFrom-Json
@@ -20,7 +21,7 @@ Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyCon
 
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 
-if ($settings.'IP Range'.Length -gt 0 -and $settings.'IP Range' -notmatch '(\d{1,3}\.){3}\d{1,3}\-(\d{1,3}\.){3}\d{1,3}') {
+<#if ($settings.'IP Range'.Length -gt 0 -and $settings.'IP Range' -notmatch '(\d{1,3}\.){3}\d{1,3}\-(\d{1,3}\.){3}\d{1,3}') {
     Throw 'Invalid IP range. Expecting something like: 192.168.0.1-192.168.10.1'
 }
 
@@ -32,20 +33,79 @@ $ips = & {
     if ($settings.IPs.Length -gt 0) {
         $settings.IPs -split ',' | ForEach-Object { $_.Trim() }
     }
+}#>
+$deployTargets = foreach ($target in $settings.Targets.Split(',').Trim()) {
+    switch -Regex ($target) {
+        # IP Range: IP-IP
+        '^(\d{1,3}\.){3}\d{1,3}\-(\d{1,3}\.){3}\d{1,3}$' {
+            Write-Host "Target '$target' is a range"
+            @{
+                Type    = 'Range'
+                StartIp = $target.Split('-')[0]
+                EndIp   = $target.Split('-')[1]
+            }
+        }
+        # CIDR: IP/Subnet
+        '^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$' {
+            Write-Host "Target '$target' is a CIDR"
+            $subnet = Get-IPv4Subnet -IPAddress $target.Split('/')[0]
+            @{
+                Type    = 'CIDR'
+                StartIp = $subnet.FirstHostIP
+                EndIp   = $subnet.LastHostIP
+            }
+        }
+        # Individual IP
+        '^(\d{1,3}\.){3}\d{1,3}$' {
+            Write-Host "Target '$target' is an individual IP"
+            @{
+                Type    = 'Single'
+                StartIp = $target
+                EndIp   = $null
+            }
+        }
+        default {
+            Write-Host "Target is not a valid IP range, CIDR, or address. Attempting DNS lookup."
+            try {
+                $dnsRes = Resolve-DnsName $target -ErrorAction SilentlyContinue
+                Write-Host "Resolved '$target' to '$($dnsRes.IPAddress)'"
+                @{
+                    Type    = 'Single'
+                    StartIp = $dnsRes.IPAddress
+                    EndIp   = $null
+                }
+            } catch {
+                Write-Host "Invalid target: '$target'"
+            }
+        }
+    }
 }
 
-[System.IO.File]::WriteAllLines('.\IPs.txt', ($ips -join ','), [System.Text.UTF8Encoding]::UTF8)
+$ips = foreach ($deployTarget in $deployTargets) {
+    if ($null -ne $deployTarget['EndIp']) { 
+        (Get-IpAddressesInRange -First $deployTarget['StartIp'] -Last $deployTarget['EndIp']).IpAddressToString
+    } else {
+        $deployTarget['StartIp']
+    }
+}
 
-#region First, try the built in auto doploy
-$ipRange = $ips | ForEach-Object { [ipaddress]$_ } | Sort-Object Address
-..\..\..\runway.exe --loglevel debug -N -S $($settings.host) deploy --range "$($ipRange[0].IPAddressToString)-$($ipRange[-1].IPAddressToString)" --token $($settings.'Enrollment Token')
+# STEP 1: try the built in auto deploy
+foreach ($deployTarget in $deployTargets) {
+    if ($null -ne $deployTarget['EndIp']) {
+        Write-Host "Deploying to IP range: $($deployTarget['StartIp'])-$($deployTarget['EndIp'])"
+        ..\..\..\runway.exe --loglevel debug -N -S $($settings.host) deploy --range "$($deployTarget['StartIp'])-$($deployTarget['EndIp'])" --token $($settings.'Enrollment Token')
+    } else {
+        Write-Host "Deploying to IP: $($deployTarget['StartIp'])"
+        ..\..\..\runway.exe --loglevel debug -N -S $($settings.host) deploy --range "$($deployTarget['StartIp'])-$($deployTarget['StartIp'])" --token $($settings.'Enrollment Token')
+    }
+}
 #endregion
 
 # Then find all remaining EndpointAssets without Runners that are in the ips array
 $remainingEndpoints = Get-BcEndpointAssetHelper -NoRunner -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
 Write-Host "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
 
-#region Now try Remove PowerShell Deployment
+#region STEP 2: try Remove PowerShell Deployment
 
 # Download runner.exe
 Get-BcAgentExecutable -Platform Windows64 -OutFile .\runner.exe
@@ -101,7 +161,7 @@ foreach ($ip in $remainingEndpoints.LastIPAddress) {
 $remainingEndpoints = Get-BcEndpointAssetHelper -NoRunner -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
 Write-Host "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
 
-#region Now try WMI deployment
+#region STEP 3: try WMI deployment
 foreach ($ip in $remainingEndpoints.LastIPAddress) {
     Write-Host "Attempting WMI deployment on $ip"
     $name = (Get-WmiObject -Class Win32_ComputerSystem -ComputerName $ip).Name
