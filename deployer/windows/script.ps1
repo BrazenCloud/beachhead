@@ -41,6 +41,7 @@ if ($ea.Count -gt 0 -and $deployerJobs.Count -lt 1) {
                     'Enrollment Token' = (New-BcEnrollmentSession -Type 'EnrollPersistentRunner' -Expiration (Get-Date).AddDays(1) -GroupId $group -IsOneTime:$false).Token
                     IPs                = ($ea.LastIPAddress -join ',')
                     "Use PowerShell 7" = ($settings.'Use PowerShell 7'.ToString() -eq 'true')
+                    Targets            = $settings.Targets
                 }
             }
         )

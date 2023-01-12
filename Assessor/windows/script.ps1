@@ -85,6 +85,7 @@ $deployerSplat = @{
             RepositoryActionId = (Get-BcRepository -Name 'beachhead:deployer').Id
             Settings           = @{
                 "Use PowerShell 7" = ($settings.'Use PowerShell 7'.ToString() -eq 'true')
+                Targets            = $settings.Targets
             }
         }
     )
