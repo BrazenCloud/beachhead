@@ -1,6 +1,9 @@
 #region dependencies
 . .\windows\dependencies\subnets.ps1
+. .\windows\dependencies\Get-IpAddressesInRange.ps1
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
+. .\windows\dependencies\Parse-Targets.ps1
+. .\windows\dependencies\ConvertTo-DiscoverIpRange.ps1
 #endregion
 
 $settings = Get-Content .\settings.json | ConvertFrom-Json
@@ -17,25 +20,40 @@ Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyCon
 #endregion
 
 #region calculate network with cidr, if none passed
+$route = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' } | Sort-Object RouteMetric)[0]
+$ip = Get-NetIPAddress -InterfaceIndex $route.InterfaceIndex -AddressFamily IPv4
+
+# find first ip
+$subnet = Get-Ipv4Subnet -IPAddress $ip.IPAddress -PrefixLength $ip.PrefixLength
+$localIPs = Get-IpAddressesInRange -First $subnet.FirstHostIP -Last $subnet.LastHostIP
 if ($settings.Targets.Length -eq 0) {
     # first find network
-    $route = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' } | Sort-Object RouteMetric)[0]
-    $ip = Get-NetIPAddress -InterfaceIndex $route.InterfaceIndex -AddressFamily IPv4
-
-    # find first ip
-    $targets = (Get-Ipv4Subnet -IPAddress $ip.IPAddress -PrefixLength $ip.PrefixLength).CidrID
-    
+    $subnet = Get-IPv4Subnet -IPAddress $subnet.CidrID.Split('/')[0] -PrefixLength $subnet.CidrID.Split('/')[1]
+    $deployTargets = @(
+        @{
+            Type    = 'CIDR'
+            StartIp = $subnet.FirstHostIP
+            EndIp   = $subnet.LastHostIP
+        }
+    )
 } else {
-    $targets = $settings.Targets
+    $deployTargets = Parse-Targets -Targets $settings.Targets
 }
-Write-Host "Scanning targets: $targets"
+Write-Host "Scanning targets: $($settings.Targets)"
 #endregion
 
 # scan each target
 $x = 0
-foreach ($target in $targets.Split(',')) {
-    $x++
-    ..\..\..\runway.exe -N discover --json "map$x.json" --range $target
+foreach ($target in $deployTargets) {
+    Write-Host "Target: $($target | ConvertTo-Json)"
+    if ($localIPs -contains $target['StartIp']) {
+        foreach ($range in ConvertTo-DiscoverIpRange -Range "$($target['StartIp'])-$($target['EndIp'])") {
+            $x++
+            ..\..\..\runway.exe -N discover --json "map$x.json" --range $range
+        }
+    } else {
+        Write-Host "Target range not on local subnet, unable to scan with asset discovery."
+    }
 }
 
 # identify the group to upload to

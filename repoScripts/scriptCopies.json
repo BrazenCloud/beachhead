@@ -14,7 +14,8 @@
         "bcDeployer"
     ],
     "Get-IpAddressesInRange.ps1": [
-        "bcDeployer"
+        "bcDeployer",
+        "assetDiscover"
     ],
     "Initialize-BcRunnerAuthentication.ps1": [
         "assessor",
@@ -34,5 +35,12 @@
     ],
     "Get-JsonValuePSv2.ps1": [
         "installCheck"
+    ],
+    "Parse-Targets.ps1": [
+        "bcDeployer",
+        "assetDiscover"
+    ],
+    "ConvertTo-DiscoverIpRange.ps1": [
+        "assetDiscover"
     ]
 }

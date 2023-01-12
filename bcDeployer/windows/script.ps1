@@ -21,65 +21,16 @@ Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyCon
 
 $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 
-<#if ($settings.'IP Range'.Length -gt 0 -and $settings.'IP Range' -notmatch '(\d{1,3}\.){3}\d{1,3}\-(\d{1,3}\.){3}\d{1,3}') {
-    Throw 'Invalid IP range. Expecting something like: 192.168.0.1-192.168.10.1'
+# get a whole list of targets
+<#
+    Returns an object like:
+{
+    "Type": "",
+    "StartIp": "",
+    "EndIp": ""
 }
-
-## Build IP Address Array
-$ips = & {
-    if ($settings.'IP Range' -match '(\d{1,3}\.){3}\d{1,3}\-(\d{1,3}\.){3}\d{1,3}') {
-        Get-IpAddressesInRange -First $settings.'IP Range'.Split('-')[0] -Last $settings.'IP Range'.Split('-')[1]
-    }
-    if ($settings.IPs.Length -gt 0) {
-        $settings.IPs -split ',' | ForEach-Object { $_.Trim() }
-    }
-}#>
-$deployTargets = foreach ($target in $settings.Targets.Split(',').Trim()) {
-    switch -Regex ($target) {
-        # IP Range: IP-IP
-        '^(\d{1,3}\.){3}\d{1,3}\-(\d{1,3}\.){3}\d{1,3}$' {
-            Write-Host "Target '$target' is a range"
-            @{
-                Type    = 'Range'
-                StartIp = $target.Split('-')[0]
-                EndIp   = $target.Split('-')[1]
-            }
-        }
-        # CIDR: IP/Subnet
-        '^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$' {
-            Write-Host "Target '$target' is a CIDR"
-            $subnet = Get-IPv4Subnet -IPAddress $target.Split('/')[0]
-            @{
-                Type    = 'CIDR'
-                StartIp = $subnet.FirstHostIP
-                EndIp   = $subnet.LastHostIP
-            }
-        }
-        # Individual IP
-        '^(\d{1,3}\.){3}\d{1,3}$' {
-            Write-Host "Target '$target' is an individual IP"
-            @{
-                Type    = 'Single'
-                StartIp = $target
-                EndIp   = $null
-            }
-        }
-        default {
-            Write-Host "Target is not a valid IP range, CIDR, or address. Attempting DNS lookup."
-            try {
-                $dnsRes = Resolve-DnsName $target -ErrorAction SilentlyContinue
-                Write-Host "Resolved '$target' to '$($dnsRes.IPAddress)'"
-                @{
-                    Type    = 'Single'
-                    StartIp = $dnsRes.IPAddress
-                    EndIp   = $null
-                }
-            } catch {
-                Write-Host "Invalid target: '$target'"
-            }
-        }
-    }
-}
+#>
+$deployTargets = Parse-Targets -Targets $settings.Targets
 
 $ips = foreach ($deployTarget in $deployTargets) {
     if ($null -ne $deployTarget['EndIp']) { 
