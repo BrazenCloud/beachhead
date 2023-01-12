@@ -13,15 +13,20 @@ $pobjId = Get-JsonValuePSv2 -Json $settings -Property 'prodigal_object_id'
 $sname = Get-JsonValuePSv2 -Json $settings -Property 'Name'
 $tag = Get-JsonValuePSv2 -Json $settings -Property 'Tag if installed'
 
+Write-Host "Checking for the installation of '$sname'"
+
 Initialize-BcRunnerAuthenticationPSv2 -aToken $atoken -Domain $bchost.split('/')[-1]
 #endregion
 
 #region apply tag
 $sw = Get-InstalledSoftware | Where-Object { $_.Name -like $sname }
 if ($null -ne $sw) {
+    Write-Host "'$sname' found, adding tag..."
     $set = New-BcSetPSv2
     Add-BcSetToSetPSv2 -TargetSetId $set -ObjectIds $pobjId
     Add-BcTagPSv2 -SetId $set -Tags $tag
+} else {
+    Write-Host "'$sname' not found."
 }
 
 #endregion
