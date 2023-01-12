@@ -14,6 +14,7 @@ $sname = Get-JsonValuePSv2 -Json $settings -Property 'Name'
 $tag = Get-JsonValuePSv2 -Json $settings -Property 'Tag if installed'
 
 Write-Host "Checking for the installation of '$sname'"
+Write-Host "Will apply tag: '$tag' if found."
 
 Initialize-BcRunnerAuthenticationPSv2 -aToken $atoken -Domain $bchost.split('/')[-1]
 #endregion
