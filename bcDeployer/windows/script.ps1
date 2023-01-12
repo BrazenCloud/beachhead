@@ -1,10 +1,10 @@
 #region dependencies
-. .\windows\dependencies\Get-BcEndpointAssetHelper.ps1
+. .\windows\dependencies\subnets.ps1
 . .\windows\dependencies\Enrollment.ps1
-. .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 #. .\windows\dependencies\wmiexec.ps1
 . .\windows\dependencies\Get-IpAddressesInRange.ps1
-. .\windows\dependencies\subnets.ps1
+. .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
+. .\windows\dependencies\Parse-Targets.ps1
 #endregion
 
 $settings = Get-Content .\settings.json | ConvertFrom-Json
