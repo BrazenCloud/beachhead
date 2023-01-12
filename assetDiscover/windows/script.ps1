@@ -47,9 +47,14 @@ $x = 0
 foreach ($target in $deployTargets) {
     Write-Host "Target: $($target | ConvertTo-Json)"
     if ($localIPs -contains $target['StartIp']) {
-        foreach ($range in ConvertTo-DiscoverIpRange -Range "$($target['StartIp'])-$($target['EndIp'])") {
+        if ($target['Type'] -eq 'Single') {
             $x++
-            ..\..\..\runway.exe -N discover --json "map$x.json" --range $range
+            ..\..\..\runway.exe -N discover --json "map$x.json" --range $target['StartIp']
+        } else {
+            foreach ($range in ConvertTo-DiscoverIpRange -Range "$($target['StartIp'])-$($target['EndIp'])") {
+                $x++
+                ..\..\..\runway.exe -N discover --json "map$x.json" --range $range
+            }
         }
     } else {
         Write-Host "Target range not on local subnet, unable to scan with asset discovery."
