@@ -21,7 +21,7 @@ if ($SampleActions.IsPresent) {
     $manifests = Get-ChildItem $PSScriptRoot\..\sampleAgentInstallers -Filter manifest.txt -Recurse
     $actionPrefix = 'install'
 } else {
-    $manifests = Get-ChildItem $PSScriptRoot\..\ -Filter manifest.txt -Recurse
+    $manifests = Get-ChildItem $PSScriptRoot\..\ -Filter manifest.txt -Recurse | Where-Object { $_.Directory.Parent.Parent.Name -ne 'sampleAgentInstallers' }
     $actionPrefix = 'beachhead'
 }
 
