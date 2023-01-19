@@ -22,8 +22,10 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     #endregion
 
     #region calculate network with cidr, if none passed
-    $route = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' } | Sort-Object RouteMetric)[0]
-    $ip = Get-NetIPAddress -InterfaceIndex $route.InterfaceIndex -AddressFamily IPv4
+    $ip = powershell.exe -c {
+        $route = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' } | Sort-Object RouteMetric)[0]    
+        Get-NetIPAddress -InterfaceIndex $route.InterfaceIndex -AddressFamily IPv4
+    }
 
     # find first ip
     $subnet = Get-Ipv4Subnet -IPAddress $ip.IPAddress -PrefixLength $ip.PrefixLength
