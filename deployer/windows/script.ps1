@@ -2,8 +2,6 @@
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 #endregion
 
-$settings = Get-Content .\settings.json | ConvertFrom-Json
-
 #region PowerShell 7
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     if (-not (Test-Path '..\..\..\pwsh\pwsh.exe')) {
@@ -13,6 +11,8 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     ..\..\..\pwsh\pwsh.exe -ExecutionPolicy Bypass -File $($MyInvocation.MyCommand.Definition)
 } else {
     #endregion
+
+    $settings = Get-Content .\settings.json | ConvertFrom-Json
 
     Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
 
