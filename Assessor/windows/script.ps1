@@ -48,6 +48,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         }
         Write-Host 'Validating update...'
         Write-Host "uri: $uri"
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
         Invoke-WebRequest $uri -OutFile .\update.msu
         & wusa.exe "$((Get-Item .\update.msu).FullName)" /quiet /norestart
         Write-Host "sleeping after update..."
