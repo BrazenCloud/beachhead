@@ -1,8 +1,10 @@
 param (
     [string]$UtilityPath,
-    [string]$Server = 'portal.brazencloud.com'
+    [string]$Server = 'portal.brazencloud.com',
+    [switch]$SampleActions
 )
 
+# Find utility, if not passed
 if ($PSBoundParameters.Keys -notcontains 'UtilityPath') {
     if (Test-Path (Get-Item 'C:\Program Files\Runway\*\runway.exe')[0].FullName) {
         $UtilityPath = (Get-Item 'C:\Program Files\Runway\*\runway.exe')[0].FullName
@@ -11,12 +13,20 @@ if ($PSBoundParameters.Keys -notcontains 'UtilityPath') {
     }
 }
 
+# Show who is logged in
 & $UtilityPath -N -S $Server who
 
-$manifests = Get-ChildItem $PSScriptRoot\..\ -Filter manifest.txt -Recurse
+# Load manifests
+if ($SampleActions.IsPresent) {
+    $manifests = Get-ChildItem $PSScriptRoot\..\sampleAgentInstallers -Filter manifest.txt -Recurse
+    $actionPrefix = 'install'
+} else {
+    $manifests = Get-ChildItem $PSScriptRoot\..\ -Filter manifest.txt -Recurse
+    $actionPrefix = 'beachhead'
+}
 
 foreach ($manifest in $manifests) {
-    $namespace = "beachhead:$($manifest.Directory.Name)"
+    $namespace = "$actionPrefix`:$($manifest.Directory.Name)"
 
     Write-Host "----------------------------------------------"
     Write-Host "Publishing: '$namespace'..."

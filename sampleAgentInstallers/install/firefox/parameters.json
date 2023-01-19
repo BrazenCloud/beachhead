@@ -1,0 +1,16 @@
+[
+    {
+        "Name": "Agent Name",
+        "Description": "The name of the agent that is being installed.",
+        "DefaultValue": "Firefox",
+        "Type": 0,
+        "IsOptional": true
+    },
+    {
+        "Name": "Agent Installed Name",
+        "Description": "The name of the agent that is being installed as shown in the registry. Can use wildcards.",
+        "DefaultValue": "Mozilla Firefox*",
+        "Type": 0,
+        "IsOptional": true
+    }
+]
