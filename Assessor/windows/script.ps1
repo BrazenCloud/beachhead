@@ -6,6 +6,54 @@
 Write-Host 'assessor'
 
 if ($PSVersionTable.PSVersion.Major -lt 7) {
+
+    $os = Get-WmiObject -Class Win32_OperatingSystem
+    [version]$osVersion = $os.Version
+    if ($osVersion.Major -lt 10) {
+        $is64bit = $os.OSArchitecture = '64-bit'
+        $osVersionString = "$($osVersion.Major).$($osVersion.Minor)"
+        switch ($osVersionString) {
+            #6.0 - Vista/2008
+            '6.0' {
+                if ($is64bit) {
+                    $uri = 'https://catalog.s.download.windowsupdate.com/d/msdownload/update/software/updt/2016/02/windows6.0-kb3118401-x64_abbfdb3452bded83cde9fc280f314a3f0f0f3146.msu'
+                } else {
+                    $uri = 'https://catalog.s.download.windowsupdate.com/d/msdownload/update/software/updt/2016/02/windows6.0-kb3118401-x86_8a1d950f6e32e086f580ce2812c2156edeaf8faa.msu'
+                }
+            }
+            #6.1 - 7/2008r2
+            '6.1' {
+                if ($is64bit) {
+                    $uri = 'https://catalog.s.download.windowsupdate.com/d/msdownload/update/software/updt/2016/02/windows6.1-kb3118401-x64_99153d75ee4d103a429464cdd9c63ef4e4957140.msu'
+                } else {
+                    $uri = 'https://catalog.s.download.windowsupdate.com/c/msdownload/update/software/updt/2016/02/windows6.1-kb3118401-x86_db0267a39805ae9e98f037a5f6ada5b34fa7bdb2.msu'
+                }
+            }
+            #6.2 - 8/2012
+            '6.2' {
+                if ($is64bit) {
+                    $uri = 'https://download.microsoft.com/download/8/E/3/8E3AED94-65F6-43A4-A502-1DE3881EA4DA/Windows8-RT-KB3118401-x64.msu'
+                } else {
+                    Throw 'Unsupported OS'
+                }
+            }
+            #6.3 - 8.1/2012r2
+            '6.3' {
+                if ($is64bit) {
+                    $uri = 'https://download.microsoft.com/download/F/E/7/FE776F83-5C58-47F2-A8CF-9065FE6E2775/Windows8.1-KB3118401-x64.msu'
+                } else {
+                    $uri = 'https://download.microsoft.com/download/5/E/8/5E888014-D156-44C8-A25B-CA30F0CCDA9F/Windows8.1-KB3118401-x86.msu'
+                }
+            }
+        }
+        Write-Host 'Validating update...'
+        Write-Host "uri: $uri"
+        Invoke-WebRequest $uri -OutFile .\update.msu
+        & wusa.exe "$((Get-Item .\update.msu).FullName)" /quiet /norestart
+        Write-Host "sleeping after update..."
+        Start-Sleep -Seconds 5
+    }
+
     if (-not (Test-Path '..\..\..\pwsh\pwsh.exe')) {
         [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
         Invoke-WebRequest 'https://github.com/PowerShell/PowerShell/releases/download/v7.3.1/PowerShell-7.3.1-win-x64.zip' -OutFile pwsh.zip
