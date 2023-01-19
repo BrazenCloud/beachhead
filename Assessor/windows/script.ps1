@@ -17,14 +17,6 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     $settings = Get-Content .\settings.json | ConvertFrom-Json
 
-    #region PowerShell 7
-    if ($PSVersionTable.PSVersion.Major -lt 7) {
-        if ($settings.'Use PowerShell 7'.ToString() -eq 'true') {
-            pwsh.exe -ExecutionPolicy Bypass -File $($MyInvocation.MyCommand.Definition)
-        }
-    }
-    #endregion
-
     Write-Host 'Initializing authentication...'
     Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
 
@@ -59,13 +51,12 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             @{
                 RepositoryActionId = (Get-BcRepository -Name 'beachhead:assetDiscover').Id
                 Settings           = @{
-                    "Group ID"         = $group
-                    "Targets"          = if ($settings.'Targets'.Length -gt 0) {
+                    "Group ID" = $group
+                    "Targets"  = if ($settings.'Targets'.Length -gt 0) {
                         $settings.'Targets'
                     } else {
                         $null
                     }
-                    "Use PowerShell 7" = ($settings.'Use PowerShell 7'.ToString() -eq 'true')
                 }
             }
         )
@@ -96,8 +87,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             @{
                 RepositoryActionId = (Get-BcRepository -Name 'beachhead:deployer').Id
                 Settings           = @{
-                    "Use PowerShell 7" = ($settings.'Use PowerShell 7'.ToString() -eq 'true')
-                    Targets            = $settings.Targets
+                    Targets = $settings.Targets
                 }
             }
         )
@@ -125,9 +115,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Actions       = @(
             @{
                 RepositoryActionId = (Get-BcRepository -Name 'beachhead:monitor').Id
-                Settings           = @{
-                    "Use PowerShell 7" = ($settings.'Use PowerShell 7'.ToString() -eq 'true')
-                }
+                Settings           = @{}
             }
         )
         Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes $settings.'Monitor Interval'
