@@ -7,6 +7,7 @@ Write-Host 'assessor'
 
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     if (-not (Test-Path '..\..\..\pwsh\pwsh.exe')) {
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
         Invoke-WebRequest 'https://github.com/PowerShell/PowerShell/releases/download/v7.3.1/PowerShell-7.3.1-win-x64.zip' -OutFile pwsh.zip
         .\windows\7z\7za.exe x pwsh.zip -opwsh
         Move-Item .\pwsh -Destination..\..\..\
