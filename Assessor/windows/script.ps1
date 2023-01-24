@@ -9,6 +9,8 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     $os = Get-WmiObject -Class Win32_OperatingSystem
     [version]$osVersion = $os.Version
+    # If OS is earlier than Win10, apply KB3118401
+    # This is required for PowerShell 7
     if ($osVersion.Major -lt 10) {
         $is64bit = $os.OSArchitecture = '64-bit'
         $osVersionString = "$($osVersion.Major).$($osVersion.Minor)"
