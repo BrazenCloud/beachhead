@@ -1,4 +1,4 @@
-$settings = Get-Content .\settings.json | ConvertFrom-Json
+#$settings = Get-Content .\settings.json | ConvertFrom-Json
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 $uri = 'https://brazenclouddlsstaging.z20.web.core.windows.net/Firefox%20Setup%20104.0.1.msi'
