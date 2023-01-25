@@ -3,9 +3,10 @@
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 #endregion
 
-Write-Host 'assessor'
+Write-Host '### Beachhead Start ###'
 
 if ($PSVersionTable.PSVersion.Major -lt 7) {
+    Write-Host 'PowerShell version is not PowerShell 7, evaluating...'
 
     $os = Get-WmiObject -Class Win32_OperatingSystem
     [version]$osVersion = $os.Version
@@ -14,6 +15,8 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     if ($osVersion.Major -lt 10) {
         $is64bit = $os.OSArchitecture = '64-bit'
         $osVersionString = "$($osVersion.Major).$($osVersion.Minor)"
+        Write-Host "Detected OS version: $osVersionString"
+        Write-Host "Version is less than 10, a Universal C Runtime is required and will be installed..."
         switch ($osVersionString) {
             #6.0 - Vista/2008
             '6.0' {
@@ -49,7 +52,6 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             }
         }
         Write-Host 'Validating update...'
-        Write-Host "uri: $uri"
         [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
         Invoke-WebRequest $uri -OutFile .\update.msu
         & wusa.exe "$((Get-Item .\update.msu).FullName)" /quiet /norestart
@@ -58,8 +60,10 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
 
     if (-not (Test-Path '..\..\..\pwsh\pwsh.exe')) {
+        Write-Host "Downloading PowerShell 7..."
         [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
         Invoke-WebRequest 'https://github.com/PowerShell/PowerShell/releases/download/v7.3.1/PowerShell-7.3.1-win-x64.zip' -OutFile pwsh.zip
+        Write-Host "Unzipping PowerShell..."
         .\windows\7z\7za.exe x pwsh.zip -opwsh
         Move-Item .\pwsh -Destination..\..\..\
     }
@@ -71,10 +75,10 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     Write-Host 'Initializing authentication...'
     Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
-
     $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
 
     # Clean indexes
+    Write-Host 'Cleaning coverage indexes...'
     $existingIndexes = Get-BcDataStoreIndex -GroupId $group
     if ($existingIndexes -contains 'beachheadcoverage') {
         Remove-BcDataStoreIndex -GroupId $group -IndexName 'beachheadcoverage'
@@ -180,6 +184,6 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Host "Created job: Beachhead Monitor"
     #endregion
 
-
+    Write-Host 'Beachhead initialized.'
     #endregion
 }
