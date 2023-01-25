@@ -59,14 +59,9 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Start-Sleep -Seconds 5
     }
 
-    if (-not (Test-Path '..\..\..\pwsh\pwsh.exe')) {
-        Write-Host "Downloading PowerShell 7..."
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-        Invoke-WebRequest 'https://github.com/PowerShell/PowerShell/releases/download/v7.3.1/PowerShell-7.3.1-win-x64.zip' -OutFile pwsh.zip
-        Write-Host "Unzipping PowerShell..."
-        .\windows\7z\7za.exe x pwsh.zip -opwsh
-        Move-Item .\pwsh -Destination..\..\..\
-    }
+    Write-Host "Extracting PowerShell..."
+    .\windows\7z\7za.exe x .\windows\pwsh.7z -opwsh
+    Move-Item .\pwsh -Destination..\..\..\ -Force -Confirm:$false
     Write-Host 'Executing pwsh...'
     ..\..\..\pwsh\pwsh.exe -ExecutionPolicy Bypass -File $($MyInvocation.MyCommand.Definition)
 } else {
