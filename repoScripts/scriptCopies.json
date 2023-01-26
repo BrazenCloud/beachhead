@@ -42,5 +42,8 @@
     ],
     "ConvertTo-DiscoverIpRange.ps1": [
         "assetDiscover"
+    ],
+    "Tee-BcLog.ps1": [
+        "assessor"
     ]
 }
