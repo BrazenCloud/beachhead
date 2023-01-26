@@ -60,7 +60,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
 
     Write-Host "Extracting PowerShell..."
-    .\windows\7z\7za.exe x .\windows\pwsh.7z -opwsh
+    .\windows\7z\7za.exe x .\windows\pwsh.7z
     if (Test-Path ..\..\..\pwsh) {
         Remove-Item ..\..\..\pwsh -Force -Recurse -Confirm:$false
     }
