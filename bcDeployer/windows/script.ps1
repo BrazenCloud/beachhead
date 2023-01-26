@@ -62,6 +62,11 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Host "Remaining target IP count: $($remainingEndpoints.Count)"
     Write-Host "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
 
+    if ($remainingEndpoints.Count -eq 0) {
+        Write-Host 'No remaining endpoints, exiting.'
+        return
+    }
+
     #endregion
 
     #region STEP 2: try Remove PowerShell Deployment
@@ -127,6 +132,11 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $remainingEndpoints = Get-BcEndpointAssetHelper -NoRunner -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
     Write-Host "Remaining target IP count: $($remainingEndpoints.Count)"
     Write-Host "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
+
+    if ($remainingEndpoints.Count -eq 0) {
+        Write-Host 'No remaining endpoints, exiting.'
+        return
+    }
 
     #endregion
 
