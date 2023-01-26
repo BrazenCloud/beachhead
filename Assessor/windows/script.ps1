@@ -1,6 +1,7 @@
 #region dependencies
 . .\windows\dependencies\subnets.ps1
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
+. .\windows\dependencies\Tee-BcLog.ps1
 #endregion
 
 Write-Host '### Beachhead Start ###'
@@ -74,6 +75,12 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Host 'Initializing authentication...'
     Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
     $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
+    $PSDefaultParameterValues = @{
+        'Tee-BcLog:Level' = 'Info';
+        'Too-BcLog:Group' = $group
+    }
+
+    Tee-BcLog -Message 'BrazenCloud Deployer initialized'
 
     # Clean indexes
     Write-Host 'Cleaning coverage indexes...'
