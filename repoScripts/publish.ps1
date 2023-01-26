@@ -42,6 +42,9 @@ if ((-not (Test-Path $PwshCachePath\pwsh.7z)) -or ($UpdateModule.IsPresent)) {
     if (Test-Path $PwshCachePath\pwsh.7z) {
         Remove-Item $PwshCachePath\pwsh.7z -Force -Confirm:$false
     }
+    if (Test-Path $PwshCachePath\pwsh) {
+        Remove-Item $PwshCachePath\pwsh -Force -Confirm:$false -Recurse
+    }
     Expand-Archive -Path "$PwshCachePath\pwsh.zip" -DestinationPath "$PwshCachePath\pwsh"
     if (-not (Test-ModulePresent -Name BrazenCloud -Version 0.3.3 -Prerelease beta5)) {
         Install-Module -Name BrazenCloud -MinimumVersion 0.3.3 -AllowPrerelease
@@ -53,8 +56,11 @@ if ((-not (Test-Path $PwshCachePath\pwsh.7z)) -or ($UpdateModule.IsPresent)) {
         $whereSb = { $_.Version -eq $BrazenCloudModuleVersion }
     }
     $bcModule = Get-Module BrazenCloud | Where-Object $whereSb
-    $bcModulePath = Split-Path (Split-Path $bcModule.Path)
-    Copy-Item $bcModulePath -Destination "$PwshCachePath\pwsh\Modules"
+    $bcModulePath = Split-Path $bcModule.Path
+    if (-not (Test-Path $PwshCachePath\pwsh\Modules\BrazenCloud)) {
+        New-Item $PwshCachePath\pwsh\Modules\BrazenCloud -ItemType Directory
+    }
+    Copy-Item $bcModulePath -Destination "$PwshCachePath\pwsh\Modules\BrazenCloud" -Recurse
 
     & $PSScriptRoot\..\assessor\windows\7z\7za.exe a "$PwshCachePath\pwsh.7z" "$PwshCachePath\pwsh"
 
