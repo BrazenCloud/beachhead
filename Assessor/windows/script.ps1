@@ -61,6 +61,9 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     Write-Host "Extracting PowerShell..."
     .\windows\7z\7za.exe x .\windows\pwsh.7z -opwsh
+    if (Test-Path ..\..\..\pwsh) {
+        Remove-Item ..\..\..\pwsh -Force -Recurse -Confirm:$false
+    }
     Move-Item .\pwsh -Destination..\..\..\ -Force -Confirm:$false
     Write-Host 'Executing pwsh...'
     ..\..\..\pwsh\pwsh.exe -ExecutionPolicy Bypass -File $($MyInvocation.MyCommand.Definition)
