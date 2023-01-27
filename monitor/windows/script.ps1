@@ -12,18 +12,23 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     ..\..\..\pwsh\pwsh.exe -ExecutionPolicy Bypass -File $($MyInvocation.MyCommand.Definition)
 } else {
     #endregion
-
     $settings = Get-Content .\settings.json | ConvertFrom-Json
-
     Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
-
     $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
+    $logSplat = @{
+        Level   = 'Info'
+        Group   = $group
+        JobName = 'Coverage Tracker'
+    }
+    Tee-BcLog @logSplat -Message 'BrazenCloud Coverage Tracker initialized'
 
     # Clean indexes
+    Tee-BcLog @logSplat -Message 'Cleaning existing coverage index...'
     Remove-BcDataStoreEntry -GroupId $group -IndexName 'beachheadcoverage' -DeleteQuery '{"query": {"match_all": {} } }'
     #Remove-BcDataStoreEntry -GroupId $group -IndexName 'beachheadcoveragesummary' -DeleteQuery '{"query": {"match_all": {} } }'
 
     #calculate runner coverage
+    Tee-BcLog @logSplat -Message 'Calculating BrazenAgent coverage...'
     $skip = 0
     $take = 1000
     $query = @{
@@ -71,6 +76,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
 
     #foreach agent deploy, calculate coverage
+    Tee-BcLog @logSplat -Message 'Calculating agent coverage...'
     $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName beachheadconfig
     foreach ($ai in $agentInstalls) {
         $installCount = ($endpointAssets | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
@@ -91,6 +97,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     $coverageSummary | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReportSummary.json
 
+    Tee-BcLog @logSplat -Message "Uploading coverage summary..."
     Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoveragesummary' -Data ($coverageSummary | ForEach-Object { $_ | ConvertTo-Json -Compress -Depth 10 })
 
     $coverageReport = foreach ($ea in $endpointAssets) {
@@ -104,6 +111,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         }
         $ht
     }
+    Tee-BcLog @logSplat -Message 'Uploading coverage data...'
     Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoverage' -Data ($coverageReport | ForEach-Object { $_ | ConvertTo-Json -Compress })
     $coverageReport | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReport.json
 }

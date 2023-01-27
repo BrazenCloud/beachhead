@@ -19,10 +19,16 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Host 'Initializing authentication...'
     $settings = Get-Content .\settings.json | ConvertFrom-Json
     Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
+    $logSplat = @{
+        Level   = 'Info'
+        Group   = $group
+        JobName = 'Asset Discover'
+    }
+    Tee-BcLog @logSplat -Message 'BrazenCloud Asset Discover initialized'
     #endregion
 
     #region calculate network with cidr, if none passed
-    Write-Host 'Calculating local network subnet...'
+    Tee-BcLog @logSplat -Message 'Calculating local network subnet...'
     $ip = powershell.exe -c {
         $route = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' } | Sort-Object RouteMetric)[0]    
         Get-NetIPAddress -InterfaceIndex $route.InterfaceIndex -AddressFamily IPv4
@@ -30,11 +36,11 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     # find first IP and CDIR
     $subnet = Get-Ipv4Subnet -IPAddress $ip.IPAddress -PrefixLength $ip.PrefixLength
-    Write-Host "Subnet: $($subnet.CidrID)"
+    Tee-BcLog @logSplat -Message "Subnet: $($subnet.CidrID)"
     $localIPs = Get-IpAddressesInRange -First $subnet.FirstHostIP -Last $subnet.LastHostIP
     if ($settings.Targets.Length -eq 0) {
         # first find network
-        Write-Host 'No targets passed, defaulting to local subnet.'
+        Tee-BcLog @logSplat -Message 'No targets passed, defaulting to local subnet.'
         $subnet = Get-IPv4Subnet -IPAddress $subnet.CidrID.Split('/')[0] -PrefixLength $subnet.CidrID.Split('/')[1]
         $deployTargets = @(
             @{
@@ -51,9 +57,9 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     # scan each target
     $x = 0
     foreach ($target in $deployTargets) {
-        Write-Host "Scanning target: $($target | ConvertTo-Json -Compress)"
+        Tee-BcLog @logSplat -Message "Scanning target: $($target | ConvertTo-Json -Compress)"
         if ($localIPs -contains $target['StartIp']) {
-            Write-Host "Writing target scan to 'map$x.json'..."
+            Tee-BcLog @logSplat -Message "Writing target scan to 'map$x.json'..."
             if ($target['Type'] -eq 'Single') {
                 $x++
                 ..\..\..\runway.exe -N discover --json "map$x.json" --range $target['StartIp']
@@ -64,7 +70,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
                 }
             }
         } else {
-            Write-Host "Target range not on local subnet, unable to scan with asset discovery."
+            Tee-BcLog @logSplat -Message "Target range not on local subnet, unable to scan with asset discovery."
         }
     }
 
@@ -74,7 +80,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     } else {
         (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
     }
-    Write-Host "Using group: $groupId as upload target..."
+    Tee-BcLog @logSplat -Message "Using group: $groupId as upload target..."
 
     # upload the maps
     foreach ($mapFile in (Get-Item map*.json)) {
@@ -86,7 +92,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             }
             $ht
         }
-        Write-Host "Uploading $($mapFile.Name)..."
+        Tee-BcLog @logSplat -Message "Uploading $($mapFile.Name)..."
         Invoke-BcMapAsset -EndpointData ([BrazenCloudSdk.PowerShell.Models.IAssetMapEndpoint[]]$htArr) -GroupId $groupId
     }
 }

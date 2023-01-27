@@ -17,6 +17,12 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $settings = Get-Content .\settings.json | ConvertFrom-Json
     Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
     $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
+    $logSplat = @{
+        Level   = 'Info'
+        Group   = $group
+        JobName = 'BrazenAgent Deployer'
+    }
+    Tee-BcLog @logSplat -Message 'BrazenCloud BrazenAgent Deployer initialized'
 
     # Get a whole list of targets
     <#
@@ -37,15 +43,15 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         }
     }
 
-    Write-Host "Starting IP count: $($ips.Count)"
+    Tee-BcLog @logSplat -Message "Starting IP count: $($ips.Count)"
 
     #region STEP 1: try the built in auto deploy
     foreach ($deployTarget in $deployTargets) {
         if ($null -ne $deployTarget['EndIp']) {
-            Write-Host "Deploying to IP range: $($deployTarget['StartIp'])-$($deployTarget['EndIp'])"
+            Tee-BcLog @logSplat -Message "Deploying to IP range: $($deployTarget['StartIp'])-$($deployTarget['EndIp'])"
             ..\..\..\runway.exe -N -S $($settings.host) deploy --range "$($deployTarget['StartIp'])-$($deployTarget['EndIp'])" --token $($settings.'Enrollment Token')
         } else {
-            Write-Host "Deploying to IP: $($deployTarget['StartIp'])"
+            Tee-BcLog @logSplat -Message "Deploying to IP: $($deployTarget['StartIp'])"
             ..\..\..\runway.exe -N -S $($settings.host) deploy --range "$($deployTarget['StartIp'])-$($deployTarget['StartIp'])" --token $($settings.'Enrollment Token')
         }
     }
@@ -54,16 +60,16 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     #region In between
 
     # Pause long enough for runners to come online
-    Write-Host 'Pausing for runners to come online.'
+    Tee-BcLog @logSplat -Message 'Pausing for runners to come online.'
     Start-Sleep -Seconds 30
 
     # Then find all remaining EndpointAssets without Runners that are in the ips array
     $remainingEndpoints = Get-BcEndpointAssetHelper -NoRunner -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
-    Write-Host "Remaining target IP count: $($remainingEndpoints.Count)"
-    Write-Host "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
+    Tee-BcLog @logSplat -Message "Remaining target IP count: $($remainingEndpoints.Count)"
+    Tee-BcLog @logSplat -Message "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
 
     if ($remainingEndpoints.Count -eq 0) {
-        Write-Host 'No remaining endpoints, exiting.'
+        Tee-BcLog @logSplat -Message 'No remaining endpoints, exiting.'
         return
     }
 
@@ -75,7 +81,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Get-BcAgentExecutable -Platform Windows64 -OutFile .\runner.exe
 
     foreach ($ip in $remainingEndpoints.LastIPAddress) {
-        Write-Host "Attempting PowerShell Remoting deployment on $ip"
+        Tee-BcLog @logSplat -Message "Attempting PowerShell Remoting deployment on $ip"
         # Lookup the host name
         $dnsName = powershell.exe -OutputFormat XML -NonInteractive -C "& {Resolve-DnsName $ip}"
         $name = $dnsName.NameHost
@@ -114,10 +120,10 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
                 Remove-PSSession $session
             } else {
-                Write-Host 'Failed to create session.'
+                Tee-BcLog @logSplat -Message 'Failed to create session.' -Level Error
             }
         } else {
-            Write-Host 'Failed to resolve IP to DNS name. Unable to establish remote PowerShell session.'
+            Tee-BcLog @logSplat -Message 'Failed to resolve IP to DNS name. Unable to establish remote PowerShell session.' -Level Error
         }
     }
     #endregion
@@ -125,16 +131,16 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     #region In between
 
     # Pause long enough for runners to come online
-    Write-Host 'Pausing for runners to come online.'
+    Tee-BcLog @logSplat -Message 'Pausing for runners to come online.'
     Start-Sleep -Seconds 30
 
     # Then find all remaining EndpointAssets without Runners that are in the ips array
     $remainingEndpoints = Get-BcEndpointAssetHelper -NoRunner -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
-    Write-Host "Remaining target IP count: $($remainingEndpoints.Count)"
-    Write-Host "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
+    Tee-BcLog @logSplat -Message "Remaining target IP count: $($remainingEndpoints.Count)"
+    Tee-BcLog @logSplat -Message "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
 
     if ($remainingEndpoints.Count -eq 0) {
-        Write-Host 'No remaining endpoints, exiting.'
+        Tee-BcLog @logSplat -Message 'No remaining endpoints, exiting.'
         return
     }
 
@@ -145,7 +151,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $windowsPsVersion = powershell.exe -c { $PSVersionTable }
     if ($windowsPsVersion.Major -eq 5 -and $windowsPsVersion.Minor -eq 1) {
         foreach ($ip in $remainingEndpoints.LastIPAddress) {
-            Write-Host "Attempting WMI deployment on $ip"
+            Tee-BcLog @logSplat -Message "Attempting WMI deployment on $ip"
             $name = (Get-WmiObject -Class Win32_ComputerSystem -ComputerName $ip).Name
 
 
@@ -166,7 +172,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             .\windows\dependencies\wmiexec.ps1 -ComputerName $name -Command $command
         }
     } else {
-        Write-Host "Unable to attempt WMI deployment, Windows PowerShell not at v5.1."
+        Tee-BcLog @logSplat -Message "Unable to attempt WMI deployment, Windows PowerShell not at v5.1." -Level Error
     }
     #endregion
 }

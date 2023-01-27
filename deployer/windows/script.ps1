@@ -12,12 +12,15 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     ..\..\..\pwsh\pwsh.exe -ExecutionPolicy Bypass -File $($MyInvocation.MyCommand.Definition)
 } else {
     #endregion
-
     $settings = Get-Content .\settings.json | ConvertFrom-Json
-
     Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
-
     $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
+    $logSplat = @{
+        Level   = 'Info'
+        Group   = $group
+        JobName = 'Deploy Orchestrator'
+    }
+    Tee-BcLog @logSplat -Message 'BrazenCloud Deploy Orchestrator initialized'
 
     #region Deploy BC Agent
     $bcDeployerJobName = "Beachhead BrazenAgent Deploy"
@@ -67,30 +70,30 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     # foreach agentInstall, get runners lacking the tag and assign the job
     :atd foreach ($atd in $agentInstalls) {
-        Write-Host "Checking for '$($atd.Name)' deploys..."
+        Tee-BcLog @logSplat -Message "Checking for '$($atd.Name)' deploys..."
         $agentJobName = "Beachhead Deploy: $($atd.Name)"
 
         # Get runners to deploy to
         $toAssign = ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
-        Write-Host "Total assets missing tag: $($toAssign.Count)"
+        Tee-BcLog @logSplat -Message "Total assets missing tag: $($toAssign.Count)"
 
         # Check for existing jobs
         $runningAssets = foreach ($agentJob in (Get-BcJobByName -JobName $agentJobName -GroupId $group | Where-Object { $_.TotalEndpointsFinished -lt $_.TotalEndpointsRunning })) {
             $threads = Get-BcJobThread -JobId $agentJob.Id | Where-Object { $_.ThreadState -eq 'Running' } | Select-Object -ExpandProperty ProdigalObjectId
             if ($null -eq $threads -and $agentJob.TotalEndpointsFinished -eq 0 -and $agentJob.TotalEndpointsRunning -eq 0 -and $toAssign.Count -eq $agentJob.TotalEndpointsAssigned) {
                 # might be an invalid job
-                Write-Host 'Possible invalid job detected.'
+                Tee-BcLog @logSplat -Message 'Possible invalid job detected.' -Level Error
                 continue atd
             } else {
                 $threads
             }
         }
         $runningAssets = $runningAssets | Select-Object -Unique
-        Write-Host "Total assets already running: $($runningAssets.Count)"
+        Tee-BcLog @logSplat -Message "Total assets already running: $($runningAssets.Count)"
 
         # filter out already running assets
         $toAssign = $toAssign | Where-Object { $runningAssets -notcontains $_ }
-        Write-Host "Total assets to assign: $($toAssign.Count)"
+        Tee-BcLog @logSplat -Message "Total assets to assign: $($toAssign.Count)"
 
         if ($toAssign.Count -gt 0) {
             $deployActions = & {
@@ -126,9 +129,9 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
             Add-BcTag -SetId $set -Tags 'Beachhead', 'AgentInstall'
 
-            Write-Host "Created job: Beachead Deploy: $($atd.Name)"
+            Tee-BcLog @logSplat -Message "Created job: Beachead Deploy: $($atd.Name)"
         } else {
-            Write-Host "No agents need $($atd.Name)"
+            Tee-BcLog @logSplat -Message "No agents need $($atd.Name)"
         }
     }
     #endregion
