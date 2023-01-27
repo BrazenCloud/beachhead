@@ -75,15 +75,19 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Host 'Initializing authentication...'
     Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
     $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
-    $PSDefaultParameterValues = @{
-        'Tee-BcLog:Level' = 'Info';
-        'Too-BcLog:Group' = $group
+    $existingIndexes = Get-BcDataStoreIndex -GroupId $group
+    if ($existingIndexes -contains 'beachheadlogs') {
+        Remove-BcDataStoreIndex -GroupId $group -IndexName 'beachheadlogs'
     }
-
-    Tee-BcLog -Message 'BrazenCloud Deployer initialized'
+    $logSplat = @{
+        Level   = 'Info'
+        Group   = $group
+        JobName = 'Deploy Start'
+    }
+    Tee-BcLog @logSplat -Message 'BrazenCloud Deployer initialized'
 
     # Clean indexes
-    Write-Host 'Cleaning coverage indexes...'
+    Tee-BcLog @logSplat -Message 'Cleaning coverage indexes...'
     $existingIndexes = Get-BcDataStoreIndex -GroupId $group
     if ($existingIndexes -contains 'beachheadcoverage') {
         Remove-BcDataStoreIndex -GroupId $group -IndexName 'beachheadcoverage'
@@ -93,13 +97,13 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
 
     # apply job tags
-    Write-Host 'Applying job tags...'
+    Tee-BcLog @logSplat -Message 'Tagging Deploy job...'
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.job_id | Out-Null
     Add-BcTag -SetId $set -Tags 'Beachhead', 'Assessor' | Out-Null
 
     #region Initiate asset discovery
-    Write-Host 'Initiating asset discovery job...'
+    Tee-BcLog @logSplat -Message 'Initiating asset discovery job...'
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
     $assetdiscoverSplat = @{
@@ -123,19 +127,26 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         )
         Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes 0
     }
-    $job = New-BcJob @assetdiscoverSplat
-    $set = New-BcSet
-    Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
-    Add-BcTag -SetId $set -Tags 'Beachhead', 'AssetDiscovery'
+    try {
+        $job = New-BcJob @assetdiscoverSplat
+        Tee-BcLog @logSplat -Message "Created Asset discovery job with ID: $($job.JobId)"
+    } catch {
+        Tee-BcLog @logSplat -Message "Failed to create asset discovery job. Error: $($error[0].Message)" -Level Error
+    }
+    if ($null -ne $job) {
+        $set = New-BcSet
+        Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
+        Add-BcTag -SetId $set -Tags 'Beachhead', 'AssetDiscovery'
+    }
 
 
-    Write-Host "Created Asset discovery job with ID: $($job.JobId)"
+    
     #endregion
 
     #region Initiate periodic jobs
 
     #region Initiate deployer
-    Write-Host 'Initiating deploy job...'
+    Tee-BcLog @logSplat -Message 'Initiating deploy job...'
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
     $deployerSplat = @{
@@ -154,17 +165,22 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         )
         Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes $settings.'Deployer Interval'
     }
-    $job = New-BcJob @deployerSplat
-    $set = New-BcSet
-    Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
-    Add-BcTag -SetId $set -Tags 'Beachhead', 'Deployer'
-
-    Write-Host "Created job: Beachhead Deployer"
+    try {
+        $job = New-BcJob @deployerSplat
+        Tee-BcLog @logSplat -Message "Created job: Beachhead Deployer"
+    } catch {
+        Tee-BcLog @logSplat -Message "Failed to create beachhead deployer job. Error: $($error[0].Message)" -Level Error
+    }
+    if ($null -ne $job) {
+        $set = New-BcSet
+        Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
+        Add-BcTag -SetId $set -Tags 'Beachhead', 'Deployer'
+    }
 
     #endregion
 
     #region Initiate monitor
-    Write-Host 'Initiating monitor job...'
+    Tee-BcLog @logSplat -Message 'Initiating monitor job...'
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
     $monitorSplat = @{
@@ -181,14 +197,19 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         )
         Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes $settings.'Monitor Interval'
     }
-    $job = New-BcJob @monitorSplat
-    $set = New-BcSet
-    Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
-    Add-BcTag -SetId $set -Tags 'Beachhead', 'Monitor'
-
-    Write-Host "Created job: Beachhead Monitor"
+    try {
+        $job = New-BcJob @monitorSplat
+        Tee-BcLog @logSplat -Message "Created job: Beachhead Monitor"
+    } catch {
+        Tee-BcLog @logSplat -Message "Failed to create beachhead monitor job. Error: $($error[0].Message)" -Level Error
+    }
+    if ($null -ne $job) {
+        $set = New-BcSet
+        Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
+        Add-BcTag -SetId $set -Tags 'Beachhead', 'Monitor'
+    }
     #endregion
 
-    Write-Host 'Beachhead initialized.'
+    Tee-BcLog @logSplat -Message 'Beachhead initialized.'
     #endregion
 }
