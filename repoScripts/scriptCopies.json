@@ -44,6 +44,10 @@
         "assetDiscover"
     ],
     "Tee-BcLog.ps1": [
-        "assessor"
+        "assessor",
+        "assetDiscover",
+        "bcDeployer",
+        "deployer",
+        "monitor"
     ]
 }
