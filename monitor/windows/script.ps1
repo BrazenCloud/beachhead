@@ -1,5 +1,6 @@
 #region dependencies
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
+. .\windows\dependencies\Tee-BcLog.ps1
 #endregion
 
 #region PowerShell 7

@@ -4,6 +4,7 @@
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 . .\windows\dependencies\Parse-Targets.ps1
 . .\windows\dependencies\ConvertTo-DiscoverIpRange.ps1
+. .\windows\dependencies\Tee-BcLog.ps1
 #endregion
 
 #region PowerShell 7
