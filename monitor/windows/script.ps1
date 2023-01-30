@@ -119,11 +119,13 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         } else {
             Tee-BcLog @logSplat -Message "EndpointAsset with IP: '$($ea.LastIPAddress)' does not exist in targets list. Adding."
             $ht = @{
-                name             = $ea.Name
-                operatingSystem  = $ea.OSName
-                ipAddress        = $ea.LastIPAddress
-                bcAgent          = $ea.HasRunner
-                bcAgentFailcount = 0
+                name                     = $ea.Name
+                operatingSystem          = $ea.OSName
+                ipAddress                = $ea.LastIPAddress
+                bcAgent                  = $ea.HasRunner
+                bcAgentFailcount         = 0
+                bcAgentPsRemoteFailCount = 0
+                bcAgentWmiFailCount      = 0
             }
             foreach ($ai in $agentInstalls) {
                 $ht["$($ai.Name.Replace(' ',''))Installed"] = $ea.Tags -contains ($ai.InstalledTag)

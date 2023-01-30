@@ -127,11 +127,13 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName beachheadconfig
     $items = foreach ($ip in $ips) {
         $ht = @{
-            name             = ''
-            operatingSystem  = ''
-            ipAddress        = $ip
-            bcAgent          = $false
-            bcAgentFailcount = 0
+            name                     = ''
+            operatingSystem          = ''
+            ipAddress                = $ip
+            bcAgent                  = $false
+            bcAgentFailCount         = 0
+            bcAgentPsRemoteFailCount = 0
+            bcAgentWmiFailCount      = 0
         }
         foreach ($ai in $agentInstalls) {
             $ht["$($ai.Name.Replace(' ',''))Installed"] = $false
