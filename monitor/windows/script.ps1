@@ -23,9 +23,17 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Tee-BcLog @logSplat -Message 'BrazenCloud Coverage Tracker initialized'
 
     # Clean indexes
-    Tee-BcLog @logSplat -Message 'Cleaning existing coverage index...'
-    Remove-BcDataStoreEntry -GroupId $group -IndexName 'beachheadcoverage' -DeleteQuery '{"query": {"match_all": {} } }'
-    #Remove-BcDataStoreEntry -GroupId $group -IndexName 'beachheadcoveragesummary' -DeleteQuery '{"query": {"match_all": {} } }'
+    Tee-BcLog @logSplat -Message 'Retrieving existing coverage data...'
+    $coverageSplat = @{
+        GroupId     = $group
+        QueryString = '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }'
+        IndexName   = 'beachheadconfig'
+    }
+    $coverage = Invoke-BcQueryDataStoreHelper @coverageSplat
+    $coverageHt = @{}
+    foreach ($item in $coverage) {
+        $coverageHt[$item['ipAddress']] = $item
+    }
 
     #calculate runner coverage
     Tee-BcLog @logSplat -Message 'Calculating BrazenAgent coverage...'
@@ -100,18 +108,42 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Tee-BcLog @logSplat -Message "Uploading coverage summary..."
     Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoveragesummary' -Data ($coverageSummary | ForEach-Object { $_ | ConvertTo-Json -Compress -Depth 10 })
 
-    $coverageReport = foreach ($ea in $endpointAssets) {
-        $ht = @{
-            name            = $ea.Name
-            operatingSystem = $ea.OSName
-            bcAgent         = $ea.HasRunner
+    foreach ($ea in $endpointAssets) {
+        if ($coverageHt.Keys -contains $ea.LastIPAddress) {
+            $coverageHt[$ea.LastIPAddress]['name'] = $ea.Name
+            $coverageHt[$ea.LastIPAddress]['operatingSystem'] = $ea.OSName
+            $coverageHt[$ea.LastIPAddress]['bcAgent'] = $ea.HasRunner
+            foreach ($ai in $agentInstalls) {
+                $coverageHt[$ea.LastIPAddress]["$($ai.Name.Replace(' ',''))Installed"] = $ea.Tags -contains ($ai.InstalledTag)
+            }
+        } else {
+            Tee-BcLog @logSplat -Message "EndpointAsset with IP: '$($ea.LastIPAddress)' does not exist in targets list. Adding."
+            $ht = @{
+                name             = $ea.Name
+                operatingSystem  = $ea.OSName
+                ipAddress        = $ea.LastIPAddress
+                bcAgent          = $ea.HasRunner
+                bcAgentFailcount = 0
+            }
+            foreach ($ai in $agentInstalls) {
+                $ht["$($ai.Name.Replace(' ',''))Installed"] = $ea.Tags -contains ($ai.InstalledTag)
+                $ht["$($ai.Name.Replace(' ',''))FailCount"] = 0
+            }
+            $coverageHt[$ea.LastIPAddress] = $ht
         }
-        foreach ($ai in $agentInstalls) {
-            $ht["$($ai.Name.Replace(' ',''))Installed"] = $ea.Tags -contains ($ai.InstalledTag)
-        }
-        $ht
     }
     Tee-BcLog @logSplat -Message 'Uploading coverage data...'
-    Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoverage' -Data ($coverageReport | ForEach-Object { $_ | ConvertTo-Json -Compress })
-    $coverageReport | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReport.json
+    Remove-BcDataStoreEntry -GroupId $group -IndexName 'beachheadcoverage' -DeleteQuery '{"query": {"match_all": {} } }'
+    for ($x = 0; $x -lt $coverageHt.Keys.Count; $x = $x + 100) {
+        $hts = $coverageHt.Keys[$x..$($x + 100)] | ForEach-Object {
+            $coverageHt[$_]
+        }
+        $itemSplat = @{
+            GroupId   = $group
+            IndexName = 'beachheadcoverage'
+            Data      = $hts | ForEach-Object { ConvertTo-Json $_ -Compress }
+        }
+        Invoke-BcBulkDataStoreInsert @itemSplat
+    }
+    $coverageHt | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReport.json
 }
