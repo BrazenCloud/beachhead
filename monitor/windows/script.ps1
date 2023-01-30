@@ -32,7 +32,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $coverage = Invoke-BcQueryDataStoreHelper @coverageSplat
     $coverageHt = @{}
     foreach ($item in $coverage) {
-        $coverageHt[$item['ipAddress']] = $item
+        $coverageHt[$item.ipAddress] = $item
     }
 
     #calculate runner coverage
