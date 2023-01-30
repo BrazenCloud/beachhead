@@ -5,6 +5,7 @@
 . .\windows\dependencies\Get-IpAddressesInRange.ps1
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 . .\windows\dependencies\Parse-Targets.ps1
+. .\windows\dependencies\Tee-BcLog.ps1
 #endregion
 
 function Get-BeachheadMonitorJob {
