@@ -2,6 +2,8 @@
 . .\windows\dependencies\subnets.ps1
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 . .\windows\dependencies\Tee-BcLog.ps1
+. .\windows\dependencies\Parse-Targets.ps1
+. .\windows\dependencies\Get-IpAddressesInRange.ps1
 #endregion
 
 Write-Host '### Beachhead Start ###'
@@ -101,6 +103,50 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.job_id | Out-Null
     Add-BcTag -SetId $set -Tags 'Beachhead', 'Assessor' | Out-Null
+
+    # Initialize blank beachheadcoverage index
+    # Get a whole list of targets
+    <#
+    Returns an object like:
+    {
+        "Type": "",
+        "StartIp": "",
+        "EndIp": ""
+    }
+    #>
+    Tee-BcLog @logSplat -Message 'Initializing Coverage Index...'
+    $deployTargets = Parse-Targets -Targets $settings.Targets
+    # Build master IP list
+    $ips = foreach ($deployTarget in $deployTargets) {
+        if ($null -ne $deployTarget['EndIp']) { 
+            (Get-IpAddressesInRange -First $deployTarget['StartIp'] -Last $deployTarget['EndIp']).IpAddressToString
+        } else {
+            $deployTarget['StartIp']
+        }
+    }
+    $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName beachheadconfig
+    $items = foreach ($ip in $ips) {
+        $ht = @{
+            name             = ''
+            operatingSystem  = ''
+            ipAddress        = $ip
+            bcAgent          = $false
+            bcAgentFailcount = 0
+        }
+        foreach ($ai in $agentInstalls) {
+            $ht["$($ai.Name.Replace(' ',''))Installed"] = $false
+            $ht["$($ai.Name.Replace(' ',''))FailCount"] = 0
+        }
+        $ht
+    }
+    for ($x = 0; $x -lt $items.Count; $x = $x + 100) {
+        $itemSplat = @{
+            GroupId   = $group
+            IndexName = 'beachheadcoverage'
+            Data      = $items[$x..$($x + 100)] | ForEach-Object { ConvertTo-Json $_ -Compress }
+        }
+        Invoke-BcBulkDataStoreInsert @itemSplat
+    }
 
     #region Initiate asset discovery
     Tee-BcLog @logSplat -Message 'Initiating asset discovery job...'
