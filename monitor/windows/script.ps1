@@ -26,8 +26,8 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Tee-BcLog @logSplat -Message 'Retrieving existing coverage data...'
     $coverageSplat = @{
         GroupId     = $group
-        QueryString = '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }'
-        IndexName   = 'beachheadconfig'
+        QueryString = '{ "query": { "match_all": { } } }'
+        IndexName   = 'beachheadcoverage'
     }
     $coverage = Invoke-BcQueryDataStoreHelper @coverageSplat
     $coverageHt = @{}
@@ -110,11 +110,11 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     foreach ($ea in $endpointAssets) {
         if ($coverageHt.Keys -contains $ea.LastIPAddress) {
-            $coverageHt[$ea.LastIPAddress]['name'] = $ea.Name
-            $coverageHt[$ea.LastIPAddress]['operatingSystem'] = $ea.OSName
-            $coverageHt[$ea.LastIPAddress]['bcAgent'] = $ea.HasRunner
+            $coverageHt[$ea.LastIPAddress].name = $ea.Name
+            $coverageHt[$ea.LastIPAddress].operatingSystem = $ea.OSName
+            $coverageHt[$ea.LastIPAddress].bcAgent = $ea.HasRunner
             foreach ($ai in $agentInstalls) {
-                $coverageHt[$ea.LastIPAddress]["$($ai.Name.Replace(' ',''))Installed"] = $ea.Tags -contains ($ai.InstalledTag)
+                $coverageHt[$ea.LastIPAddress]."$($ai.Name.Replace(' ',''))Installed" = $ea.Tags -contains ($ai.InstalledTag)
             }
         } else {
             Tee-BcLog @logSplat -Message "EndpointAsset with IP: '$($ea.LastIPAddress)' does not exist in targets list. Adding."
@@ -135,7 +135,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Tee-BcLog @logSplat -Message 'Uploading coverage data...'
     Remove-BcDataStoreEntry -GroupId $group -IndexName 'beachheadcoverage' -DeleteQuery '{"query": {"match_all": {} } }'
     for ($x = 0; $x -lt $coverageHt.Keys.Count; $x = $x + 100) {
-        $hts = $coverageHt.Keys[$x..$($x + 100)] | ForEach-Object {
+        $hts = @($coverageHt.Keys)[$x..$($x + 100)] | ForEach-Object {
             $coverageHt[$_]
         }
         $itemSplat = @{
