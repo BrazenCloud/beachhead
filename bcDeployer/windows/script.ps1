@@ -7,6 +7,94 @@
 . .\windows\dependencies\Parse-Targets.ps1
 #endregion
 
+function Get-BeachheadMonitorJob {
+    [OutputType([BrazenCloudSdk.PowerShell.Models.IJobQueryView])]
+    [cmdletbinding()]
+    param (
+        [string]$group
+    )
+    $skip = 0
+    $take = 1000
+    $query = @{
+        includeSubgroups  = $false
+        MembershipCheckId = $group
+        skip              = $skip
+        take              = $take
+        sortDirection     = 0
+        filter            = @{
+            children = @(
+                @{
+                    Left     = 'Name'
+                    Operator = ':'
+                    Right    = 'Beachhead Monitor'
+                },
+                @{
+                    Left     = 'Groups'
+                    Operator = '='
+                    Right    = $group
+                }
+            )
+            operator = 'AND'
+        }
+    }
+    (Invoke-BcQueryJob -Query $query).Items
+}
+Function Update-FailCounts {
+    [cmdletbinding()]
+    param (
+        [string[]]$Ips,
+        [ValidateSet('bcAgentFailCount', 'bcAgentPsRemoteFailCount', 'bcAgentWmiFailCount')]
+        [string]$Stage
+    )
+    # loop if monitor is running
+    $repeat = $true
+    while ($repeat) {
+        $repeat = $false
+        if ((Get-BeachheadMonitorJob).TotalEndpointsRunning -gt 0) {
+            Write-Host 'Monitor is running.'
+            $repeat = $true
+            Start-Sleep -Seconds 5
+        } else {
+            # get existing items
+            $coverageSplat = @{
+                GroupId     = $group
+                QueryString = '{ "query": { "match_all": { } } }'
+                IndexName   = 'beachheadcoverage'
+            }
+            $coverage = Invoke-BcQueryDataStoreHelper @coverageSplat
+            $coverageHt = @{}
+            foreach ($item in $coverage) {
+                $coverageHt[$item.ipAddress] = $item
+            }
+            # updating data
+            foreach ($ip in $Ips) {
+                if ($coverageHt.Keys -contains $ip) {
+                    $coverageHt[$ip].$Stage = $coverageHt[$ip].$Stage + 1
+                }
+            }
+        }
+        if ((Get-BeachheadMonitorJob).TotalEndpointsRunning -gt 0) {
+            Write-Host 'Monitor is running.'
+            $repeat = $true
+            Start-Sleep -Seconds 5
+        } else {
+            Remove-BcDataStoreEntry -GroupId $group -IndexName 'beachheadcoverage' -DeleteQuery '{"query": {"match_all": {} } }'
+            # uploading data
+            for ($x = 0; $x -lt $coverageHt.Keys.Count; $x = $x + 100) {
+                $hts = @($coverageHt.Keys)[$x..$($x + 100)] | ForEach-Object {
+                    $coverageHt[$_]
+                }
+                $itemSplat = @{
+                    GroupId   = $group
+                    IndexName = 'beachheadcoverage'
+                    Data      = $hts | ForEach-Object { ConvertTo-Json $_ -Compress }
+                }
+                Invoke-BcBulkDataStoreInsert @itemSplat
+            }
+        }
+    }
+}
+
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     if (-not (Test-Path '..\..\..\pwsh\pwsh.exe')) {
         Throw 'Pwsh missing, rerun assessor'
@@ -68,9 +156,13 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Tee-BcLog @logSplat -Message "Remaining target IP count: $($remainingEndpoints.Count)"
     Tee-BcLog @logSplat -Message "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
 
+    
+
     if ($remainingEndpoints.Count -eq 0) {
         Tee-BcLog @logSplat -Message 'No remaining endpoints, exiting.'
         return
+    } else {
+        Update-FailCounts -Ips $remainingEndpoints.LastIPAddress -Stage bcAgentFailCount
     }
 
     #endregion
@@ -142,6 +234,8 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     if ($remainingEndpoints.Count -eq 0) {
         Tee-BcLog @logSplat -Message 'No remaining endpoints, exiting.'
         return
+    } else {
+        Update-FailCounts -Ips $remainingEndpoints.LastIPAddress -Stage bcAgentPsRemoteFailCount
     }
 
     #endregion
@@ -175,4 +269,14 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Tee-BcLog @logSplat -Message "Unable to attempt WMI deployment, Windows PowerShell not at v5.1." -Level Error
     }
     #endregion
+
+    # Then find all remaining EndpointAssets without Runners that are in the ips array
+    $remainingEndpoints = Get-BcEndpointAssetHelper -NoRunner -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
+    Tee-BcLog @logSplat -Message "Remaining target IP count: $($remainingEndpoints.Count)"
+    Tee-BcLog @logSplat -Message "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
+
+    if ($remainingEndpoints.Count -gt 0) {
+        Update-FailCounts -Ips $remainingEndpoints.LastIPAddress -Stage bcAgentWmiFailCount
+    }
+    Tee-BcLog @logSplat -Message "BrazenAgent deploy complete."
 }
