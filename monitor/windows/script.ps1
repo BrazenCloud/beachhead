@@ -148,4 +148,47 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Invoke-BcBulkDataStoreInsert @itemSplat
     }
     $coverageHt | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReport.json
+
+    <# 
+            Calculate time since start, if greater than 3 runs (based on run interval), then
+        check to make sure a asset discovery job has completed. If both true, then calculate
+        Beachheadcompletion conditions.
+        Conditions for beachhead being 'complete':
+        - Each of the following conditions are true or their failure count is 2 or greater:
+            - bcAgent
+            - Other agents
+    #>
+    $monitorJob = Get-BcJob -JobId $settings.job_id
+    if ($monitorJob.JobMetrics.Where({ $_.NumRunning -eq 0 }).Count -gt 3) {
+        Tee-BcLog @logSplat -Message "Starting completion test..."
+        # has run at least 3 times
+        $coverageSplat = @{
+            GroupId     = $group
+            QueryString = '{ "query": { "match_all": { } } }'
+            IndexName   = 'beachheadcoverage'
+        }
+        $coverage = Invoke-BcQueryDataStoreHelper @coverageSplat
+        $complete = $true
+        :completecalc foreach ($item in $coverage) {
+            if ($item.bcAgent -ne $true) {
+                if ($item.bcAgentFailCount -lt 2 -or $item.bcAgentPsRemoteFailCount -lt 2 -or $item.bcAgentWmiFailCount -lt 2) {
+                    Tee-BcLog @logSplat -Message "Process is not completed. First endpoint found with missing bcAgent: $($item.name) - $($item.ipAddress)"
+                    $complete = $false
+                    break completecalc
+                }
+            }
+            foreach ($ai in $agentInstalls) {
+                if ($item."$($ai.Name.Replace(' ',''))Installed" -ne $true) {
+                    if ($item."$($ai.Name.Replace(' ',''))FailCount" -lt 2) {
+                        Tee-BcLog @logSplat -Message "Process is not completed. First endpoint found with missing agent ($($ai.Name)): $($item.name) - $($item.ipAddress)"
+                        $complete = $false
+                        break completecalc
+                    }
+                }
+            }
+        }
+        if ($complete) {
+            Tee-BcLog @logSplat -Message "Process is complete!"
+        }
+    }
 }
