@@ -123,7 +123,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
                 operatingSystem          = $ea.OSName
                 ipAddress                = $ea.LastIPAddress
                 bcAgent                  = $ea.HasRunner
-                bcAgentFailcount         = 0
+                bcAgentFailCount         = 0
                 bcAgentPsRemoteFailCount = 0
                 bcAgentWmiFailCount      = 0
             }
