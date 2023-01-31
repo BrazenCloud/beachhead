@@ -240,7 +240,9 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Actions       = @(
             @{
                 RepositoryActionId = (Get-BcRepository -Name 'beachhead:monitor').Id
-                Settings           = @{}
+                Settings           = @{
+                    'Failure Threshold' = $settings.'Failure Threshold'
+                }
             }
         )
         Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes $settings.'Monitor Interval'

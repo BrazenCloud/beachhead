@@ -202,7 +202,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         $complete = $true
         :completecalc foreach ($item in $coverage.Where({ $_.name.Length -gt 0 })) {
             if ($item.bcAgent -ne $true) {
-                if ($item.bcAgentFailCount -lt 2 -or $item.bcAgentPsRemoteFailCount -lt 2 -or $item.bcAgentWmiFailCount -lt 2) {
+                if ($item.bcAgentFailCount -lt [int]$settings.'Failure Threshold' -or $item.bcAgentPsRemoteFailCount -lt [int]$settings.'Failure Threshold' -or $item.bcAgentWmiFailCount -lt [int]$settings.'Failure Threshold') {
                     Tee-BcLog @logSplat -Message "Process is not completed. Found endpoint with missing bcAgent: $($item.name) - $($item.ipAddress)"
                     $complete = $false
                     #break completecalc
@@ -213,7 +213,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             }
             foreach ($ai in $agentInstalls) {
                 if ($item."$($ai.Name.Replace(' ',''))Installed" -ne $true) {
-                    if ($item."$($ai.Name.Replace(' ',''))FailCount" -lt 2) {
+                    if ($item."$($ai.Name.Replace(' ',''))FailCount" -lt [int]$settings.'Failure Threshold') {
                         Tee-BcLog @logSplat -Message "Process is not completed. Found endpoint with missing agent ($($ai.Name)): $($item.name) - $($item.ipAddress)"
                         $complete = $false
                         #break completecalc

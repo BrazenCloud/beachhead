@@ -1,1 +1,9 @@
-[]
+[
+    {
+        "Name": "Failure Threshold",
+        "Description": "The number of fails of each deployment type before an endpoint is considered to be failed.",
+        "Type": 1,
+        "DefaultValue": 2,
+        "IsOptional": true
+    }
+]
