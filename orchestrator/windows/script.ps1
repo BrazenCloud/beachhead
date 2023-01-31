@@ -63,7 +63,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     #region Deploy other required agents
     # Get agents to deploy
     $installCheck = (Get-BcRepository -Name 'deployer:installCheck').Id
-    $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": {"query_string" : {"query" : "agentInstall", "default_field" : "type" } } }' -IndexName beachheadconfig
+    $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": {"query_string" : {"query" : "agentInstall", "default_field" : "type" } } }' -IndexName deployerconfig
 
     # Get all endpointassets w/runner in current group
     $endpointAssets = Get-BcEndpointAssetHelper -HasRunner -GroupId $group

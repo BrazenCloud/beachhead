@@ -1,5 +1,5 @@
 {
-    "Description": "Sample Beachhead agent deploy action to install Microsoft Edge.",
+    "Description": "Sample Deployer agent deploy action to install Microsoft Edge.",
     "Language": "PowerShell",
     "Tags": [
         "Deployer",

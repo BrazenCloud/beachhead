@@ -39,9 +39,9 @@ if ($null -ne $sw) {
     $ip = ((route print | find " 0.0.0.0").Trim() -split ' +')[3].Trim()
     # get local runner's group
     $group = Get-BcEaGroupPSv2 -EndpointAssetId $pobjId
-    # get the entry in beachheadcoverage that matches this runner's IP
+    # get the entry in deployercoverage that matches this runner's IP
     $query = "{\`"query\`":{\`"query_string\`": {\`"query\`": \`"$ip\`",\`"default_field\`": \`"ipAddress\`"}}}"
-    $fullEntry = Invoke-BcQueryDataStorePSv2 -Query $query -IndexName 'beachheadcoverage' -GroupId $group
+    $fullEntry = Invoke-BcQueryDataStorePSv2 -Query $query -IndexName 'deployercoverage' -GroupId $group
     # pull the entry out of the Elastic JSON
     if ($fullEntry -match '\[(?<entry>[^]]+)\]') {
         $entry = $Matches.entry
@@ -56,9 +56,9 @@ if ($null -ne $sw) {
             $entry = $entry -replace '"', '\"'
             # remove the existing entry from Elastic
             $deleteQuery = "{\`"query\`": {\`"match\`": {\`"ipAddress\`": \`"$ip\`"}}}"
-            Remove-BcDataStoreEntryPSv2 -GroupId $group -IndexName 'beachheadcoverage' -DeleteQuery $deleteQuery
+            Remove-BcDataStoreEntryPSv2 -GroupId $group -IndexName 'deployercoverage' -DeleteQuery $deleteQuery
             # replace it with the new one
-            Invoke-BcBulkDataStoreInsertPSv2 -GroupId $group -IndexName 'beachheadcoverage' -Entries $entry
+            Invoke-BcBulkDataStoreInsertPSv2 -GroupId $group -IndexName 'deployercoverage' -Entries $entry
         } else {
             Write-Host "Entry: $entry"
             Throw 'Entry does not match regex.'

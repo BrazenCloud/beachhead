@@ -19,7 +19,7 @@ if (-not ($null -ne $group -and $group.Count -eq 1)) {
 . $PSScriptRoot\..\functions\Remove-BcDatastoreQuery2.ps1
 
 try {
-    Remove-BcDatastoreQuery2 -IndexName 'beachheadconfig' -GroupId $group.Id -Query @{query = @{match_all = @{} } }
+    Remove-BcDatastoreQuery2 -IndexName 'deployerconfig' -GroupId $group.Id -Query @{query = @{match_all = @{} } }
 } catch {}
 
-Invoke-BcBulkDatastoreInsert2 -IndexName 'beachheadconfig' -GroupId $group.Id -Data $agentInstalls
+Invoke-BcBulkDatastoreInsert2 -IndexName 'deployerconfig' -GroupId $group.Id -Data $agentInstalls

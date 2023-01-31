@@ -27,4 +27,4 @@ $group = New-BcGroup @splat
 
 # Upload the sample config
 $sampleConfig = Get-Content $PSScriptRoot\sampleConfig.json | ConvertFrom-Json
-Invoke-BcBulkDatastoreInsert2 -GroupId $group -Data $sampleConfig -IndexName 'beachheadconfig'
+Invoke-BcBulkDatastoreInsert2 -GroupId $group -Data $sampleConfig -IndexName 'deployerconfig'

@@ -76,7 +76,7 @@ Each agent that you need deployed via BrazenCloud Deployer needs to have a confi
   - **settings**: An object containing each parameter name with the value to use.
 - **installedTag**: The tag to apply to the asset in BrazenCloud when the agent has been installed.
 
-With the config written, it needs to be put into the `beachheadconfig` index in the newly created group. This can be done using the API, most easily using the [PowerShell SDK](https://github.com/brazencloud/powershell) and the included [Invoke-BcBulkDatastoreInsert2](repoScripts/functions/Invoke-BcBulkDatastoreInsert2.ps1) function:
+With the config written, it needs to be put into the `deployerconfig` index in the newly created group. This can be done using the API, most easily using the [PowerShell SDK](https://github.com/brazencloud/powershell) and the included [Invoke-BcBulkDatastoreInsert2](repoScripts/functions/Invoke-BcBulkDatastoreInsert2.ps1) function:
 
 ```powershell
 # load up the Invoke-BcBulkDatastoreInsert2 function
@@ -89,16 +89,16 @@ $data = Get-Content ./sampleConfig.json | ConvertFrom-Json
 $groupId = ((Get-BcGroup).Items | ?{$_.Name -eq 'Customer 1'}).Id
 
 # Add the config to the index
-Invoke-BcBulkDatastoreInsert2 -Data $data -IndexName 'beachheadconfig' -GroupId $groupId
+Invoke-BcBulkDatastoreInsert2 -Data $data -IndexName 'deployerconfig' -GroupId $groupId
 ```
 
 ## Tracking coverage
 
-When the `deployer:tracker` job runs, it will create 2 additional indexes: `beachheadcoverage` and `beachheadcoveragesummary`.
+When the `deployer:tracker` job runs, it will create 2 additional indexes: `deployercoverage` and `deployercoveragesummary`.
 
-For a high level view of how the deployment is going, refer to the `beachheadcoveragesummary` index.
+For a high level view of how the deployment is going, refer to the `deployercoveragesummary` index.
 
-For specific coverage information for each discovered asset, refer to the `beachheadcoverage` index.
+For specific coverage information for each discovered asset, refer to the `deployercoverage` index.
 
 ## Deployer Jobs
 

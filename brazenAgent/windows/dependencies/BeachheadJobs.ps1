@@ -26,7 +26,7 @@ Function Get-DeployerJob {
                 @{
                     Left     = 'Tags'
                     Operator = '='
-                    Right    = 'Beachhead'
+                    Right    = 'Deployer'
                 },
                 @{
                     Left     = 'Tags'

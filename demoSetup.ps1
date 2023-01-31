@@ -158,9 +158,9 @@ if ($null -eq $group) {
 Write-Host 'Uploading demo config...'
 $sampleConfig = $sampleConfigJson | ConvertFrom-Json
 try {
-    Remove-BcDataStoreQuery2 -GroupId $bcGroup.Id -Query @{query = @{match_all = @{} } } -IndexName 'beachheadconfig' | Out-Null
+    Remove-BcDataStoreQuery2 -GroupId $bcGroup.Id -Query @{query = @{match_all = @{} } } -IndexName 'deployerconfig' | Out-Null
 } catch {}
-Invoke-BcBulkDatastoreInsert2 -GroupId $bcGroup.Id -Data $sampleConfig -IndexName 'beachheadconfig' | Out-Null
+Invoke-BcBulkDatastoreInsert2 -GroupId $bcGroup.Id -Data $sampleConfig -IndexName 'deployerconfig' | Out-Null
 
 # Generate an enrollment token, download runway.exe
 Write-Host 'Downloading runway.exe...'

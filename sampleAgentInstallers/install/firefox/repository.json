@@ -1,5 +1,5 @@
 {
-    "Description": "Sample Beachhead agent deploy action to install Mozilla Firefox.",
+    "Description": "Sample Deployer agent deploy action to install Mozilla Firefox.",
     "Language": "PowerShell",
     "Tags": [
         "Deployer",

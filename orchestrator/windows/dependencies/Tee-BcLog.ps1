@@ -14,6 +14,6 @@ Function Tee-BcLog {
         job       = $JobName
         message   = $Message
     }
-    Invoke-BcBulkDataStoreInsert -GroupId $Group -IndexName 'beachheadlogs' -Data ($logHt | ForEach-Object { ConvertTo-Json $_ -Compress }) | Out-Null
+    Invoke-BcBulkDataStoreInsert -GroupId $Group -IndexName 'deployerlogs' -Data ($logHt | ForEach-Object { ConvertTo-Json $_ -Compress }) | Out-Null
     Write-Host "$timestamp [$Level] $Message"
 }

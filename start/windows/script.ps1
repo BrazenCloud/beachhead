@@ -6,7 +6,7 @@
 . .\windows\dependencies\Get-IpAddressesInRange.ps1
 #endregion
 
-Write-Host '### Beachhead Start ###'
+Write-Host '### Deployer Start ###'
 
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Host 'PowerShell version is not PowerShell 7, evaluating...'
@@ -78,8 +78,8 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
     $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
     $existingIndexes = Get-BcDataStoreIndex -GroupId $group
-    if ($existingIndexes -contains 'beachheadlogs') {
-        Remove-BcDataStoreIndex -GroupId $group -IndexName 'beachheadlogs'
+    if ($existingIndexes -contains 'deployerlogs') {
+        Remove-BcDataStoreIndex -GroupId $group -IndexName 'deployerlogs'
     }
     $logSplat = @{
         Level   = 'Info'
@@ -91,11 +91,11 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     # Clean indexes
     Tee-BcLog @logSplat -Message 'Cleaning coverage indexes...'
     $existingIndexes = Get-BcDataStoreIndex -GroupId $group
-    if ($existingIndexes -contains 'beachheadcoverage') {
-        Remove-BcDataStoreIndex -GroupId $group -IndexName 'beachheadcoverage'
+    if ($existingIndexes -contains 'deployercoverage') {
+        Remove-BcDataStoreIndex -GroupId $group -IndexName 'deployercoverage'
     }
-    if ($existingIndexes -contains 'beachheadcoveragesummary') {
-        Remove-BcDataStoreIndex -GroupId $group -IndexName 'beachheadcoveragesummary'
+    if ($existingIndexes -contains 'deployercoveragesummary') {
+        Remove-BcDataStoreIndex -GroupId $group -IndexName 'deployercoveragesummary'
     }
 
     # apply job tags
@@ -104,7 +104,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.job_id | Out-Null
     Add-BcTag -SetId $set -Tags 'Beachhead', 'Start' | Out-Null
 
-    # Initialize blank beachheadcoverage index
+    # Initialize blank deployercoverage index
     # Get a whole list of targets
     <#
     Returns an object like:
@@ -124,7 +124,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             $deployTarget['StartIp']
         }
     }
-    $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName beachheadconfig
+    $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName deployerconfig
     $items = foreach ($ip in $ips) {
         $ht = @{
             name                     = ''
@@ -144,7 +144,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     for ($x = 0; $x -lt $items.Count; $x = $x + 100) {
         $itemSplat = @{
             GroupId   = $group
-            IndexName = 'beachheadcoverage'
+            IndexName = 'deployercoverage'
             Data      = $items[$x..$($x + 100)] | ForEach-Object { ConvertTo-Json $_ -Compress }
         }
         Invoke-BcBulkDataStoreInsert @itemSplat

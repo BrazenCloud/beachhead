@@ -28,7 +28,7 @@ Function Update-FailCounts {
             $coverageSplat = @{
                 GroupId     = $group
                 QueryString = '{ "query": { "match_all": { } } }'
-                IndexName   = 'beachheadcoverage'
+                IndexName   = 'deployercoverage'
             }
             $coverage = Invoke-BcQueryDataStoreHelper @coverageSplat
             $coverageHt = @{}
@@ -47,7 +47,7 @@ Function Update-FailCounts {
             $repeat = $true
             Start-Sleep -Seconds 5
         } else {
-            Remove-BcDataStoreEntry -GroupId $group -IndexName 'beachheadcoverage' -DeleteQuery '{"query": {"match_all": {} } }'
+            Remove-BcDataStoreEntry -GroupId $group -IndexName 'deployercoverage' -DeleteQuery '{"query": {"match_all": {} } }'
             # uploading data
             for ($x = 0; $x -lt $coverageHt.Keys.Count; $x = $x + 100) {
                 $hts = @($coverageHt.Keys)[$x..$($x + 100)] | ForEach-Object {
@@ -55,7 +55,7 @@ Function Update-FailCounts {
                 }
                 $itemSplat = @{
                     GroupId   = $group
-                    IndexName = 'beachheadcoverage'
+                    IndexName = 'deployercoverage'
                     Data      = $hts | ForEach-Object { ConvertTo-Json $_ -Compress }
                 }
                 Invoke-BcBulkDataStoreInsert @itemSplat

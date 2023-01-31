@@ -28,7 +28,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $coverageSplat = @{
         GroupId     = $group
         QueryString = '{ "query": { "match_all": { } } }'
-        IndexName   = 'beachheadcoverage'
+        IndexName   = 'deployercoverage'
     }
     $coverage = Invoke-BcQueryDataStoreHelper @coverageSplat
     $coverageHt = @{}
@@ -100,14 +100,14 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         }
     }
     Tee-BcLog @logSplat -Message 'Uploading coverage data...'
-    Remove-BcDataStoreEntry -GroupId $group -IndexName 'beachheadcoverage' -DeleteQuery '{"query": {"match_all": {} } }'
+    Remove-BcDataStoreEntry -GroupId $group -IndexName 'deployercoverage' -DeleteQuery '{"query": {"match_all": {} } }'
     for ($x = 0; $x -lt $coverageHt.Keys.Count; $x = $x + 100) {
         $hts = @($coverageHt.Keys)[$x..$($x + 100)] | ForEach-Object {
             $coverageHt[$_]
         }
         $itemSplat = @{
             GroupId   = $group
-            IndexName = 'beachheadcoverage'
+            IndexName = 'deployercoverage'
             Data      = $hts | ForEach-Object { ConvertTo-Json $_ -Compress }
         }
         Invoke-BcBulkDataStoreInsert @itemSplat
@@ -132,7 +132,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     #foreach agent deploy, calculate coverage
     Tee-BcLog @logSplat -Message 'Calculating agent coverage...'
-    $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName beachheadconfig
+    $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName deployerconfig
     foreach ($ai in $agentInstalls) {
         $allNonFailedAgentEndpoints = $coverage | Where-Object { $_.name.Length -gt 0 -and ($_."$($ai.Name.Replace(' ',''))Installed" -eq $true -or $_."$($ai.Name.Replace(' ',''))FailCount" -lt [int]$settings.'Failure Threshold') }
         $installCount = ($endpointAssets | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
@@ -154,14 +154,14 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $coverageSummary | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReportSummary.json
 
     Tee-BcLog @logSplat -Message "Uploading coverage summary..."
-    Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoveragesummary' -Data ($coverageSummary | ForEach-Object { $_ | ConvertTo-Json -Compress -Depth 10 })
+    Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'deployercoveragesummary' -Data ($coverageSummary | ForEach-Object { $_ | ConvertTo-Json -Compress -Depth 10 })
     #endregion
 
     <# 
             Calculate time since start, if greater than 3 runs (based on run interval), then
         check to make sure a asset discovery job has completed. If both true, then calculate
-        Beachheadcompletion conditions.
-        Conditions for beachhead being 'complete':
+        Deployer completion conditions.
+        Conditions for Deployer being 'complete':
         - Each of the following conditions are true or their failure count is 2 or greater:
             - bcAgent
             - Other agents
@@ -175,7 +175,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         $coverageSplat = @{
             GroupId     = $group
             QueryString = '{ "query": { "match_all": { } } }'
-            IndexName   = 'beachheadcoverage'
+            IndexName   = 'deployercoverage'
         }
         $coverage = Invoke-BcQueryDataStoreHelper @coverageSplat
         $complete = $true
