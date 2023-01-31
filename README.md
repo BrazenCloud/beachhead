@@ -106,7 +106,7 @@ For a visual representation of how Deployer works:
 
 ![](https://lucid.app/publicSegments/view/6b22d320-2d5e-465e-8a6d-2fdc61dbdb0f/image.png)
 
-### Assessor
+### Start
 
 The `deployer:start` action kicks off Deployer. It will initiate the following jobs automatically:
 

@@ -6,7 +6,7 @@ param (
     [System.IO.DirectoryInfo]$PwshCachePath = 'C:\tmp',
     [string]$PwshDownloadUri = 'https://github.com/PowerShell/PowerShell/releases/download/v7.3.1/PowerShell-7.3.1-win-x64.zip',
     [switch]$UpdateModule,
-    [switch]$SkipAssessor
+    [switch]$SkipStart
 )
 
 Function Test-ModulePresent {
@@ -63,17 +63,17 @@ if ((-not (Test-Path $PwshCachePath\pwsh.7z)) -or ($UpdateModule.IsPresent)) {
     }
     Copy-Item $bcModulePath -Destination "$PwshCachePath\pwsh\Modules\BrazenCloud" -Recurse
 
-    & $PSScriptRoot\..\assessor\windows\7z\7za.exe a "$PwshCachePath\pwsh.7z" "$PwshCachePath\pwsh"
+    & $PSScriptRoot\..\start\windows\7z\7za.exe a "$PwshCachePath\pwsh.7z" "$PwshCachePath\pwsh"
 
     Remove-Item "$PwshCachePath\pwsh" -Recurse -Force
 }
 
-if (-not (Test-Path $PSScriptRoot\..\assessor\windows\pwsh.7z) -or $UpdateModule.IsPresent) {
-    if (Test-Path $PSScriptRoot\..\assessor\windows\pwsh.7z) {
-        Remove-Item $PSScriptRoot\..\assessor\windows\pwsh.7z -Force -Confirm:$false
+if (-not (Test-Path $PSScriptRoot\..\start\windows\pwsh.7z) -or $UpdateModule.IsPresent) {
+    if (Test-Path $PSScriptRoot\..\start\windows\pwsh.7z) {
+        Remove-Item $PSScriptRoot\..\start\windows\pwsh.7z -Force -Confirm:$false
     }
     Write-Host 'Copying pwsh.7z to the action...'
-    Copy-Item $PwshCachePath\pwsh.7z -Destination $PSScriptRoot\..\assessor\windows\pwsh.7z
+    Copy-Item $PwshCachePath\pwsh.7z -Destination $PSScriptRoot\..\start\windows\pwsh.7z
 }
 
 # Find utility, if not passed
@@ -98,7 +98,7 @@ if ($SampleActions.IsPresent) {
 }
 
 foreach ($manifest in $manifests) {
-    if ($SkipAssessor.IsPresent -and $manifest.Directory.Name -eq 'assessor') {
+    if ($SkipStart.IsPresent -and $manifest.Directory.Name -eq 'start') {
         continue
     }
     $namespace = "$actionPrefix`:$($manifest.Directory.Name)"

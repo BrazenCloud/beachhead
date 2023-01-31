@@ -6,7 +6,7 @@
 #region PowerShell 7
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     if (-not (Test-Path '..\..\..\pwsh\pwsh.exe')) {
-        Throw 'Pwsh missing, rerun assessor'
+        Throw 'Pwsh missing, rerun deployer:start'
     }
     Write-Host 'Executing pwsh...'
     ..\..\..\pwsh\pwsh.exe -ExecutionPolicy Bypass -File $($MyInvocation.MyCommand.Definition)
