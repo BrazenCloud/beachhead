@@ -8,7 +8,7 @@ Function Get-DeployerJob {
         'Orchestrator' {
             $searchTag = 'Orchestrator'
         }
-        'Monitor' {
+        'Tracker' {
             $searchTag = 'Tracker'
         }
         'AssetDiscovery' {

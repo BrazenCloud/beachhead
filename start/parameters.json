@@ -1,6 +1,6 @@
 [
     {
-        "Name": "Monitor Interval",
+        "Name": "Tracker Interval",
         "Description": "How frequently (in minutes) the coverage stats should be updated.",
         "Type": 1,
         "DefaultValue": 5,

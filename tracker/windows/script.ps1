@@ -166,11 +166,11 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             - bcAgent
             - Other agents
     #>
-    $monitorJob = Get-BcJob -JobId $settings.job_id
+    $trackerJob = Get-BcJob -JobId $settings.job_id
     $assetDiscoverJob = Get-DeployerJob -JobName AssetDiscovery -Group $group
-    if ($monitorJob.JobMetrics.Where({ $_.NumRunning -eq 0 }).Count -gt 3 -and $assetDiscoverJob.TotalEndpointsFinished -eq 1) {
+    if ($trackerJob.JobMetrics.Where({ $_.NumRunning -eq 0 }).Count -gt 3 -and $assetDiscoverJob.TotalEndpointsFinished -eq 1) {
         Tee-BcLog @logSplat -Message "Starting completion test..."
-        # monitor job (this one) has run at least 3 times
+        # tracker job (this one) has run at least 3 times
         # asset discover job has finished
         $coverageSplat = @{
             GroupId     = $group
@@ -202,7 +202,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         }
         if ($complete) {
             Tee-BcLog @logSplat -Message "Process is complete!"
-            # disable monitor and deployer jobs
+            # disable tracker and deployer jobs
             Tee-BcLog @logSplat -Message "Disabling recurring jobs..."
             Enable-BcJob -JobId $settings.job_id -Value:$false
             $deployJob = Get-DeployerJob -JobName Deployer -Group $group

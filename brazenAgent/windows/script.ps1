@@ -15,12 +15,12 @@ Function Update-FailCounts {
         [ValidateSet('bcAgentFailCount', 'bcAgentPsRemoteFailCount', 'bcAgentWmiFailCount')]
         [string]$Stage
     )
-    # loop if monitor is running
+    # loop if tracker is running
     $repeat = $true
     while ($repeat) {
         $repeat = $false
-        if ((Get-DeployerJob -JobName Monitor).TotalEndpointsRunning -gt 0) {
-            Write-Host 'Monitor is running.'
+        if ((Get-DeployerJob -JobName Tracker).TotalEndpointsRunning -gt 0) {
+            Write-Host 'Tracker is running.'
             $repeat = $true
             Start-Sleep -Seconds 5
         } else {
@@ -42,8 +42,8 @@ Function Update-FailCounts {
                 }
             }
         }
-        if ((Get-DeployerJob -JobName Monitor).TotalEndpointsRunning -gt 0) {
-            Write-Host 'Monitor is running.'
+        if ((Get-DeployerJob -JobName Tracker).TotalEndpointsRunning -gt 0) {
+            Write-Host 'Tracker is running.'
             $repeat = $true
             Start-Sleep -Seconds 5
         } else {

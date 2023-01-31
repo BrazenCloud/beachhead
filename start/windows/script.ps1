@@ -227,11 +227,11 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     #endregion
 
-    #region Initiate monitor
+    #region Initiate Tracker
     Tee-BcLog @logSplat -Message 'Initiating track job...'
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
-    $monitorSplat = @{
+    $TrackerSplat = @{
         Name          = "Deployer Tracker"
         GroupId       = $group
         EndpointSetId = $set
@@ -245,10 +245,10 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
                 }
             }
         )
-        Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes $settings.'Monitor Interval'
+        Schedule      = New-BcJobScheduleObject -ScheduleType 'RunNow' -RepeatMinutes $settings.'Tracker Interval'
     }
     try {
-        $job = New-BcJob @monitorSplat
+        $job = New-BcJob @trackerSplat
         Tee-BcLog @logSplat -Message "Created job: Deployer Tracker"
     } catch {
         Tee-BcLog @logSplat -Message "Failed to create Deployer Tracker job. Error: $($error[0].Message)" -Level Error
