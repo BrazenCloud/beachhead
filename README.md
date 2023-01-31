@@ -1,8 +1,8 @@
-# BrazenCloud Beachhead
+# BrazenCloud Deployer
 
-BrazenCloud Beachhead is a Incident Response deployment tool built for IR teams to quickly and easily deploy their tooling to an environment.
+BrazenCloud Deployer is a Incident Response deployment tool built for IR teams to quickly and easily deploy their tooling to an environment.
 
-In order to use BrazenCloud Beachhead, you need:
+In order to use BrazenCloud Deployer, you need:
 
 - A BrazenCloud account
 - Playbooks to deploy your agents
@@ -10,12 +10,12 @@ In order to use BrazenCloud Beachhead, you need:
 
 ## Process
 
-When an IR engagement is started, here are the step to utilize BrazenCloud Beachhead:
+When an IR engagement is started, here are the step to utilize BrazenCloud Deployer:
 
 1. Create a new group
 2. Upload the agent installation configs
 3. Install a BrazenCloud agent in the customer's network and give it an appropriate service account
-4. Run the `beachhead:assessor` action on the initial agent
+4. Run the `deployer:start` action on the initial agent
 5. View the coverage progress in the index
 
 ## Agent installation prerequisites
@@ -47,7 +47,7 @@ You can do this via `services.msc`.
 
 ## Applying the agent installation config
 
-Each agent that you need deployed via BrazenCloud Beachhead needs to have a configuration. Here is an example that uses Firefox:
+Each agent that you need deployed via BrazenCloud Deployer needs to have a configuration. Here is an example that uses Firefox:
 
 ```json
 [
@@ -94,38 +94,38 @@ Invoke-BcBulkDatastoreInsert2 -Data $data -IndexName 'beachheadconfig' -GroupId 
 
 ## Tracking coverage
 
-When the `beachhead:monitor` job runs, it will create 2 additional indexes: `beachheadcoverage` and `beachheadcoveragesummary`.
+When the `deployer:tracker` job runs, it will create 2 additional indexes: `beachheadcoverage` and `beachheadcoveragesummary`.
 
 For a high level view of how the deployment is going, refer to the `beachheadcoveragesummary` index.
 
 For specific coverage information for each discovered asset, refer to the `beachheadcoverage` index.
 
-## Beachhead Jobs
+## Deployer Jobs
 
-For a visual representation of how Beachhead works:
+For a visual representation of how Deployer works:
 
 ![](https://lucid.app/publicSegments/view/6b22d320-2d5e-465e-8a6d-2fdc61dbdb0f/image.png)
 
 ### Assessor
 
-The `beachhead:assessor` action kicks off Beachhead. It will initiate the following jobs automatically:
+The `deployer:start` action kicks off Deployer. It will initiate the following jobs automatically:
 
-- `beachhead:assetDiscover`: Periodically run Asset discovery.
-- `beachhead:bcDeployer`: Periodically deploy the BrazenCloud agent to discovered endpoints.
-- `beachhead:deployer`: Periodically scan for endpoints with the BrazenCloud agent that need the other agents installed.
-- `beachhead:monitor`: Periodically update the coverage report.
+- `deployer:assetDiscover`: Periodically run Asset discovery.
+- `deployer:brazenAgent`: Periodically deploy the BrazenCloud agent to discovered endpoints.
+- `deployer:orchestrator`: Periodically scan for endpoints with the BrazenCloud agent that need the other agents installed.
+- `deployer:tracker`: Periodically update the coverage report.
 
-### Deployer
+### Orchestrator
 
-The `beachhead:deployer` action will run periodically at the interval specified by `beachhead:assessor` and for each agent to be installed, it will find the assets that do not have it installed and create a job to deploy it to them.
+The `deployer:orchestrator` action will run periodically at the interval specified by `deployer:start` and for each agent to be installed, it will find the assets that do not have it installed and create a job to deploy it to them.
 
-### Monitor
+### Tracker
 
-The `beachhead:monitor` action will run periodically at the interval specified by `beachhead:assessor` and update the coverage reports.
+The `deployer:tracker` action will run periodically at the interval specified by `deployer:start` and update the coverage reports.
 
-### BcDeployer
+### BrazenAgent
 
-The `beachhead:bcDeployer` action runs periodically at the interval specified by `beachhead:assessor` and will scan the group that the job is initiated from, find all discovered endpoints that do not currently have the BrazenCloud agent installed, and attempt to install the agent using the following deployment methods, in order:
+The `deployer:brazenAgent` action runs periodically at the interval specified by `deployer:start` and will scan the group that the job is initiated from, find all discovered endpoints that do not currently have the BrazenCloud agent installed, and attempt to install the agent using the following deployment methods, in order:
 
 1. **autodeploy**: This is a deployment method built into the agent that utilizes the `admin$` share.
 2. **PowerShell remoting**: If the autodeploy method fails, PowerShell remoting is attempted
