@@ -4,7 +4,7 @@
 . .\windows\dependencies\Invoke-WebRequestPSv2.ps1
 . .\windows\dependencies\Get-JsonValuePSv2.ps1
 . .\windows\dependencies\Get-InstalledSoftware.ps1
-. .\windows\dependencies\Invoke-BcBulkDataStoreInsertPSv2.ps1
+. .\windows\dependencies\Invoke-BcDataStoreBulkInsertPSv2.ps1
 . .\windows\dependencies\Remove-BcDataStoreEntryPSv2.ps1
 . .\windows\dependencies\Get-BcEaGroupPSv2.ps1
 . .\windows\dependencies\Invoke-BcQueryDataStorePSv2.ps1
