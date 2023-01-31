@@ -52,7 +52,7 @@ if ($null -ne $sw) {
         $regex = "`"$searchStr`":(?<count>\d),"
         if ($entry -match $regex) {
             # increment the fail count
-            $newCount = ([int]$Matches.Count) = + 1
+            $newCount = ([int]$Matches.Count) + 1
             $entry = $entry -replace $regex, "`"$($aname.Replace(' ', ''))FailCount`":$newCount,"
             # format the entry for reupload
             $entry = $entry -replace '"', '\"'
