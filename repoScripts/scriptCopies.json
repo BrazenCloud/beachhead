@@ -63,5 +63,9 @@
     ],
     "Remove-BcDataStoreEntryPSv2.ps1": [
         "installCheck"
+    ],
+    "BeachheadJobs.ps1": [
+        "assetDiscover",
+        "bcDeployer"
     ]
 }

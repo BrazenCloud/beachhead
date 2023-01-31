@@ -5,6 +5,7 @@
 . .\windows\dependencies\Parse-Targets.ps1
 . .\windows\dependencies\ConvertTo-DiscoverIpRange.ps1
 . .\windows\dependencies\Tee-BcLog.ps1
+. .\windows\dependencies\BeachheadJobs.ps1
 #endregion
 
 #region PowerShell 7
@@ -97,40 +98,5 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
 
     # check if deployer is running, if not, wait and initiate it
-    $skip = 0
-    $take = 1000
-    $query = @{
-        includeSubgroups  = $true
-        MembershipCheckId = $group
-        skip              = $skip
-        take              = $take
-        sortDirection     = 0
-        filter            = @{
-            children = @(
-                @{
-                    Left     = 'Tags'
-                    Operator = '='
-                    Right    = 'beachhead'
-                },
-                @{
-                    Left     = 'Tags'
-                    Operator = '='
-                    Right    = 'deployer'
-                },
-                @{
-                    Left     = 'Groups'
-                    Operator = '='
-                    Right    = $group
-                }
-            )
-            operator = 'AND'
-        }
-    }
-    $deployJob = (Invoke-BcQueryJob -Query $query).Items[0]
-    while ($deployJob.TotalEndpointsRunning -gt 0) {
-        Start-Sleep -Seconds 15
-        $deployJob = (Invoke-BcQueryJob -Query $query).Items[0]
-    }
-    # start deploy job
-    Remove-BcJobThread -JobId $deployJob.Id
+    Start-BeachheadJob -JobName 'Deployer' -Group $group
 }

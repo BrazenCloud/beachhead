@@ -161,6 +161,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     if ($remainingEndpoints.Count -eq 0) {
         Tee-BcLog @logSplat -Message 'No remaining endpoints, exiting.'
+        Start-BeachheadJob -JobName 'Deployer' -Group $group
         return
     } else {
         Update-FailCounts -Ips $remainingEndpoints.LastIPAddress -Stage bcAgentFailCount
@@ -234,6 +235,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     if ($remainingEndpoints.Count -eq 0) {
         Tee-BcLog @logSplat -Message 'No remaining endpoints, exiting.'
+        Start-BeachheadJob -JobName 'Deployer' -Group $group
         return
     } else {
         Update-FailCounts -Ips $remainingEndpoints.LastIPAddress -Stage bcAgentPsRemoteFailCount
@@ -280,4 +282,5 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Update-FailCounts -Ips $remainingEndpoints.LastIPAddress -Stage bcAgentWmiFailCount
     }
     Tee-BcLog @logSplat -Message "BrazenAgent deploy complete."
+    Start-BeachheadJob -JobName 'Deployer' -Group $group
 }
