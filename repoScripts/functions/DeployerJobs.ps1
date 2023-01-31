@@ -1,15 +1,15 @@
-Function Get-BeachheadJob {
+Function Get-DeployerJob {
     param (
-        [ValidateSet('Deployer', 'Monitor', 'AssetDiscovery')]
+        [ValidateSet('Orchestrator', 'Tracker', 'AssetDiscovery')]
         [string]$JobName,
         [string]$Group
     )
     switch ($JobName) {
-        'Deployer' {
-            $searchTag = 'Deployer'
+        'Orchestrator' {
+            $searchTag = 'Orchestrator'
         }
         'Monitor' {
-            $searchTag = 'Monitor'
+            $searchTag = 'Tracker'
         }
         'AssetDiscovery' {
             $searchTag = 'AssetDiscovery'
@@ -26,7 +26,7 @@ Function Get-BeachheadJob {
                 @{
                     Left     = 'Tags'
                     Operator = '='
-                    Right    = 'Beachhead'
+                    Right    = 'Deployer'
                 },
                 @{
                     Left     = 'Tags'
@@ -44,16 +44,16 @@ Function Get-BeachheadJob {
     }
     (Invoke-BcQueryJob -Query $query).Items[0]
 }
-Function Start-BeachheadJob {
+Function Start-DeployerJob {
     param (
-        [ValidateSet('Deployer', 'Monitor', 'AssetDiscovery')]
+        [ValidateSet('Orchestrator', 'Tracker', 'AssetDiscovery')]
         [string]$JobName,
         [string]$Group
     )
-    $job = Get-BeachheadJob -JobName $JobName -Group $Group
+    $job = Get-DeployerJob -JobName $JobName -Group $Group
     While ($job.TotalEndpointsRunning -gt 0) {
         Start-Sleep -Seconds 10
-        $job = Get-BeachheadJob -JobName $JobName -Group $Group
+        $job = Get-DeployerJob -JobName $JobName -Group $Group
     }
     Remove-BcJobThread -JobId $job.Id
 }

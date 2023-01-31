@@ -6,7 +6,7 @@
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 . .\windows\dependencies\Parse-Targets.ps1
 . .\windows\dependencies\Tee-BcLog.ps1
-. .\windows\dependencies\BeachheadJobs.ps1
+. .\windows\dependencies\DeployerJobs.ps1
 #endregion
 Function Update-FailCounts {
     [cmdletbinding()]
@@ -19,7 +19,7 @@ Function Update-FailCounts {
     $repeat = $true
     while ($repeat) {
         $repeat = $false
-        if ((Get-BeachheadJob -JobName Monitor).TotalEndpointsRunning -gt 0) {
+        if ((Get-DeployerJob -JobName Monitor).TotalEndpointsRunning -gt 0) {
             Write-Host 'Monitor is running.'
             $repeat = $true
             Start-Sleep -Seconds 5
@@ -42,7 +42,7 @@ Function Update-FailCounts {
                 }
             }
         }
-        if ((Get-BeachheadJob -JobName Monitor).TotalEndpointsRunning -gt 0) {
+        if ((Get-DeployerJob -JobName Monitor).TotalEndpointsRunning -gt 0) {
             Write-Host 'Monitor is running.'
             $repeat = $true
             Start-Sleep -Seconds 5
@@ -129,7 +129,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     if ($remainingEndpoints.Count -eq 0) {
         Tee-BcLog @logSplat -Message 'No remaining endpoints, exiting.'
-        Start-BeachheadJob -JobName 'Deployer' -Group $group
+        Start-DeployerJob -JobName 'Deployer' -Group $group
         return
     } else {
         Update-FailCounts -Ips $remainingEndpoints.LastIPAddress -Stage bcAgentFailCount
@@ -203,7 +203,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     if ($remainingEndpoints.Count -eq 0) {
         Tee-BcLog @logSplat -Message 'No remaining endpoints, exiting.'
-        Start-BeachheadJob -JobName 'Deployer' -Group $group
+        Start-DeployerJob -JobName 'Deployer' -Group $group
         return
     } else {
         Update-FailCounts -Ips $remainingEndpoints.LastIPAddress -Stage bcAgentPsRemoteFailCount
@@ -250,5 +250,5 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Update-FailCounts -Ips $remainingEndpoints.LastIPAddress -Stage bcAgentWmiFailCount
     }
     Tee-BcLog @logSplat -Message "BrazenAgent deploy complete."
-    Start-BeachheadJob -JobName 'Deployer' -Group $group
+    Start-DeployerJob -JobName 'Deployer' -Group $group
 }

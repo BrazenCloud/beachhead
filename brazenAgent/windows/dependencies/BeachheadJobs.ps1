@@ -1,4 +1,4 @@
-Function Get-BeachheadJob {
+Function Get-DeployerJob {
     param (
         [ValidateSet('Deployer', 'Monitor', 'AssetDiscovery')]
         [string]$JobName,
@@ -44,16 +44,16 @@ Function Get-BeachheadJob {
     }
     (Invoke-BcQueryJob -Query $query).Items[0]
 }
-Function Start-BeachheadJob {
+Function Start-DeployerJob {
     param (
         [ValidateSet('Deployer', 'Monitor', 'AssetDiscovery')]
         [string]$JobName,
         [string]$Group
     )
-    $job = Get-BeachheadJob -JobName $JobName -Group $Group
+    $job = Get-DeployerJob -JobName $JobName -Group $Group
     While ($job.TotalEndpointsRunning -gt 0) {
         Start-Sleep -Seconds 10
-        $job = Get-BeachheadJob -JobName $JobName -Group $Group
+        $job = Get-DeployerJob -JobName $JobName -Group $Group
     }
     Remove-BcJobThread -JobId $job.Id
 }

@@ -58,7 +58,7 @@
     "BrazenCloudIndexesPSv2.ps1": [
         "installCheck"
     ],
-    "BeachheadJobs.ps1": [
+    "DeployerJobs.ps1": [
         "assetDiscover",
         "brazenAgent",
         "tracker"

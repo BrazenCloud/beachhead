@@ -5,7 +5,7 @@
 . .\windows\dependencies\Parse-Targets.ps1
 . .\windows\dependencies\ConvertTo-DiscoverIpRange.ps1
 . .\windows\dependencies\Tee-BcLog.ps1
-. .\windows\dependencies\BeachheadJobs.ps1
+. .\windows\dependencies\DeployerJobs.ps1
 #endregion
 
 #region PowerShell 7
@@ -99,5 +99,5 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
 
     # check if deployer is running, if not, wait and initiate it
-    Start-BeachheadJob -JobName 'Deployer' -Group $group
+    Start-DeployerJob -JobName 'Deployer' -Group $group
 }
