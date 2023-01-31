@@ -72,43 +72,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     $lastUpdate = Get-Date -Format "o"
 
-    $coverageSummary = @{
-        LastUpdate          = $lastUpdate
-        BrazenCloudCoverage = $([math]::round((($endpointAssets | Where-Object { $_.HasRunner }).Count / $endpointAssets.Count), 2) * 100)
-        counts              = @{
-            Runners        = ($endpointAssets | Where-Object { $_.HasRunner }).Count
-            EndpointAssets = $endpointAssets.Count
-        }
-        missing             = @{
-            Runners = $endpointAssets | Where-Object { -not $_.HasRunner }
-        }
-    }
-
-    #foreach agent deploy, calculate coverage
-    Tee-BcLog @logSplat -Message 'Calculating agent coverage...'
-    $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName beachheadconfig
-    foreach ($ai in $agentInstalls) {
-        $installCount = ($endpointAssets | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
-        $coverageSummary['counts']["$($ai.Name.Replace(' ',''))Installs"] = $installCount
-        $coverageSummary["$($ai.Name.Replace(' ',''))Coverage"] = $([math]::round($($installCount / $endpointAssets.Count), 2) * 100)
-        $coverageSummary['missing']["$($ai.Name.Replace(' ',''))Installs"] = @($endpointAssets | Where-Object { $_.Tags -notcontains $ai.InstalledTag } | ForEach-Object {
-                @{
-                    Name       = $_.Name
-                    IPAddress  = $_.LastIPAddress
-                    MacAddress = $_.PreferredMacAddress
-                    LastUpdate = $lastUpdate
-                }
-            })
-    
-        Select-Object Name, LastIPAddress, PreferredMacAddress
-    }
-    $coverageSummary | ConvertTo-Json -Depth 10 -Compress
-
-    $coverageSummary | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReportSummary.json
-
-    Tee-BcLog @logSplat -Message "Uploading coverage summary..."
-    Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoveragesummary' -Data ($coverageSummary | ForEach-Object { $_ | ConvertTo-Json -Compress -Depth 10 })
-
+    #region coverage
     foreach ($ea in $endpointAssets) {
         if ($coverageHt.Keys -contains $ea.LastIPAddress) {
             $coverageHt[$ea.LastIPAddress].name = $ea.Name
@@ -149,6 +113,48 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Invoke-BcBulkDataStoreInsert @itemSplat
     }
     $coverageHt | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReport.json
+    #endregion
+
+    #region Coverage Summary
+    $allNonFailedEndpoints = $coverage | Where-Object { $_.name.Length -gt 0 -and ($_.bcAgent -eq $true -or $_.bcAgentFailCount -lt [int]$settings.'Failure Threshold') }
+    $allEndpointsWithBcAgent = $coverage | Where-Object { $_.name.Length -gt 0 -and $_.bcAgent -eq $true }
+    $coverageSummary = @{
+        LastUpdate          = $lastUpdate
+        BrazenCloudCoverage = $([math]::round(($allEndpointsWithBcAgent.Count / $allNonFailedEndpoints.Count), 2) * 100)
+        counts              = @{
+            Runners        = ($endpointAssets | Where-Object { $_.HasRunner }).Count
+            EndpointAssets = $endpointAssets.Count
+        }
+        missing             = @{
+            Runners = @($endpointAssets | Select-Object -ExcludeProperty Adapters | Where-Object { -not $_.HasRunner })
+        }
+    }
+
+    #foreach agent deploy, calculate coverage
+    Tee-BcLog @logSplat -Message 'Calculating agent coverage...'
+    $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName beachheadconfig
+    foreach ($ai in $agentInstalls) {
+        $installCount = ($endpointAssets | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
+        $coverageSummary['counts']["$($ai.Name.Replace(' ',''))Installs"] = $installCount
+        $coverageSummary["$($ai.Name.Replace(' ',''))Coverage"] = $([math]::round($($installCount / $endpointAssets.Count), 2) * 100)
+        $coverageSummary['missing']["$($ai.Name.Replace(' ',''))Installs"] = @($endpointAssets | Where-Object { $_.Tags -notcontains $ai.InstalledTag } | ForEach-Object {
+                @{
+                    Name       = $_.Name
+                    IPAddress  = $_.LastIPAddress
+                    MacAddress = $_.PreferredMacAddress
+                    LastUpdate = $lastUpdate
+                }
+            })
+    
+        Select-Object Name, LastIPAddress, PreferredMacAddress
+    }
+    $coverageSummary | ConvertTo-Json -Depth 10 -Compress
+
+    $coverageSummary | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReportSummary.json
+
+    Tee-BcLog @logSplat -Message "Uploading coverage summary..."
+    Invoke-BcBulkDataStoreInsert -GroupId $group -IndexName 'beachheadcoveragesummary' -Data ($coverageSummary | ForEach-Object { $_ | ConvertTo-Json -Compress -Depth 10 })
+    #endregion
 
     <# 
             Calculate time since start, if greater than 3 runs (based on run interval), then
