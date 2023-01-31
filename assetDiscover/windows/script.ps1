@@ -20,6 +20,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Host 'Initializing authentication...'
     $settings = Get-Content .\settings.json | ConvertFrom-Json
     Initialize-BcRunnerAuthentication -Settings $settings -WarningAction SilentlyContinue
+    $group = (Get-BcEndpointAsset -EndpointId $settings.prodigal_object_id).Groups[0]
     $logSplat = @{
         Level   = 'Info'
         Group   = $group
