@@ -1,5 +1,5 @@
 <#
-    This script is designed to guide a user through setting up their tenant for a beachhead demo.
+    This script is designed to guide a user through setting up their tenant for a deployer demo.
     - Download and install the BrazenCloud module
     - Authenticate with the module
     - Create a group
@@ -41,7 +41,7 @@ $sampleConfigJson = @'
 '@
 
 Write-Host "`n"
-Write-Host "This script is designed to deploy a DEMO configuration for BrazenCloud Beachhead. While it can be"
+Write-Host "This script is designed to deploy a DEMO configuration for BrazenCloud Deployer. While it can be"
 Write-Host "modified to deploy a custom configuration, please do so with care and/or direction from BrazenCloud."
 Read-Host "`nBy continuing, you understand that this deploys a DEMO configuration (press any key to continue)"
 
@@ -127,9 +127,9 @@ While ($needsAuth) {
 
 # Create group, if necessary
 Write-Host 'Creating group...'
-$groupName = Read-Host "Enter a group name, if left blank, 'Beachhead Demo' will be used "
+$groupName = Read-Host "Enter a group name, if left blank, 'Deployer Demo' will be used "
 if ($groupName.Length -eq 0) {
-    $groupName = 'Beachhead Demo'
+    $groupName = 'Deployer Demo'
 }
 
 $groups = (Get-BcGroup).Items
@@ -154,7 +154,7 @@ if ($null -eq $group) {
     $bcGroup = $group
 }
 
-# Upload beachhead config
+# Upload deployer config
 Write-Host 'Uploading demo config...'
 $sampleConfig = $sampleConfigJson | ConvertFrom-Json
 try {
@@ -182,11 +182,11 @@ Write-Host "Using runway.exe and the generated token, you can install your first
 Write-Host "runway.exe -N -S portal.brazencloud.com install -t $($et.Token)" -ForegroundColor Green
 Write-Host "`n"
 Write-Host "Once you have your first runner deployed, initiate a job using the " -NoNewline
-Write-Host "beachhead:assessor" -ForegroundColor Green -NoNewline
+Write-Host "deployer:start" -ForegroundColor Green -NoNewline
 Write-Host " action."
 Write-Host "`n"
 Write-Host "### IMPORTANT ###" -ForegroundColor Cyan
-Write-Host "Beachhead has been configured with a default, DEMO configuration. This will deploy Microsoft Edge and Mozilla Firefox."
+Write-Host "Deployer has been configured with a default, DEMO configuration. This will deploy Microsoft Edge and Mozilla Firefox."
 Write-Host "To support your agents of choice, you will need to write, or request us to write, actions to deploy them."
 Write-Host "Action development is not difficult, for a basic overview, please review our docs via the link in the navigation bar."
 Write-Host "`n"

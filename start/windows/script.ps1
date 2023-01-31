@@ -102,7 +102,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Tee-BcLog @logSplat -Message 'Tagging Start job...'
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.job_id | Out-Null
-    Add-BcTag -SetId $set -Tags 'Beachhead', 'Start' | Out-Null
+    Add-BcTag -SetId $set -Tags 'Deployer', 'Start' | Out-Null
 
     # Initialize blank deployercoverage index
     # Get a whole list of targets

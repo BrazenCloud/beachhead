@@ -1,5 +1,5 @@
 <#
-    This script is provided as a sample to prepare your environment to run BrazenCloud Beachhead.
+    This script is provided as a sample to prepare your environment to run BrazenCloud Deployer.
 
     If you already have v0.3.3+ of the BrazenCloud module installed, you can skip the module installation.
 
@@ -18,7 +18,7 @@ Connect-BrazenCloud
 # Create a new group
 $splat = @{
     LicenseAllocatedRunners     = 0 # number of licenses to assign
-    Name                        = 'Beachhead Demo'
+    Name                        = 'Deployer Demo'
     ParentGroupId               = (Get-BcAuthenticationCurrentUser).HomeContainerId # this example uses the user's root group ID
     LicenseCanAssignSubLicenses = $false
     LicenseSkip                 = $false # if true, licenses will not be managed at this tenant, if it is a tenant
