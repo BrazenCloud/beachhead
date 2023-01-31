@@ -1,9 +1,10 @@
 {
-    "Description": "Customized asset discovery for Beachhead.",
+    "Description": "Customized asset discovery for the Deployer action bundle.",
     "Language": "PowerShell",
     "Tags": [
-        "Beachhead",
+        "Deployer",
         "Windows",
-        "AssetDiscovery"
+        "AssetDiscovery",
+        "Bundle"
     ]
 }

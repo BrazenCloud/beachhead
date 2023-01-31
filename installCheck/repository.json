@@ -1,8 +1,9 @@
 {
-    "Description": "Installs the required agents as a part of the beachhead collection of actions.",
+    "Description": "Verifies agent installation as a part of the Deployer action bundle.",
     "Language": "PowerShell",
     "Tags": [
-        "Beachhead",
-        "Windows"
+        "Deployer",
+        "Windows",
+        "Bundle"
     ]
 }

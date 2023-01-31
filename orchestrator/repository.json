@@ -1,8 +1,9 @@
 {
-    "Description": "Periodically assign agent deployments as a part of the beachhead collection of actions.",
+    "Description": "Orchestrates agent deployments as a part of the Deployer action bundle",
     "Language": "PowerShell",
     "Tags": [
-        "Beachhead",
-        "Windows"
+        "Deployer",
+        "Windows",
+        "Bundle"
     ]
 }
