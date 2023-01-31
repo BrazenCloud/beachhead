@@ -1,13 +1,11 @@
 #region dependencies
-. .\windows\dependencies\TaggingPSv2.ps1
+. .\windows\dependencies\Get-InstalledSoftware.ps1
 . .\windows\dependencies\Initialize-BcRunnerAuthenticationPSv2.ps1
+. .\windows\dependencies\TaggingPSv2.ps1
 . .\windows\dependencies\Invoke-WebRequestPSv2.ps1
 . .\windows\dependencies\Get-JsonValuePSv2.ps1
-. .\windows\dependencies\Get-InstalledSoftware.ps1
-. .\windows\dependencies\Invoke-BcDataStoreBulkInsertPSv2.ps1
-. .\windows\dependencies\Remove-BcDataStoreEntryPSv2.ps1
 . .\windows\dependencies\Get-BcEaGroupPSv2.ps1
-. .\windows\dependencies\Invoke-BcQueryDataStorePSv2.ps1
+. .\windows\dependencies\BrazenCloudIndexesPSv2.ps1
 #endregion
 
 $settings = Get-Content .\settings.json

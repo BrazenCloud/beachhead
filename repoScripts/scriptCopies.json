@@ -55,13 +55,7 @@
     "Get-BcEaGroupPSv2.ps1": [
         "installCheck"
     ],
-    "Invoke-BcDataStoreBulkInsertPSv2.ps1": [
-        "installCheck"
-    ],
-    "Invoke-BcQueryDataStorePSv2.ps1": [
-        "installCheck"
-    ],
-    "Remove-BcDataStoreEntryPSv2.ps1": [
+    "BrazenCloudIndexesPSv2.ps1": [
         "installCheck"
     ],
     "BeachheadJobs.ps1": [
