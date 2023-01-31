@@ -4,6 +4,10 @@
 . .\windows\dependencies\Invoke-WebRequestPSv2.ps1
 . .\windows\dependencies\Get-JsonValuePSv2.ps1
 . .\windows\dependencies\Get-InstalledSoftware.ps1
+. .\windows\dependencies\Invoke-BcBulkDataStoreInsertPSv2.ps1
+. .\windows\dependencies\Remove-BcDataStoreEntryPSv2.ps1
+. .\windows\dependencies\Get-BcEaGroupPSv2.ps1
+. .\windows\dependencies\Invoke-BcQueryDataStorePSv2.ps1
 #endregion
 
 $settings = Get-Content .\settings.json
@@ -28,6 +32,37 @@ if ($null -ne $sw) {
     Add-BcTagPSv2 -SetId $set -Tags $tag
 } else {
     Write-Host "'$sname' not found."
+    
+    # supporting back to PSv2, of course
+
+    # get local IP
+    $ip = ((route print | find " 0.0.0.0").Trim() -split ' +')[3].Trim()
+    # get local runner's group
+    $group = Get-BcEaGroupPSv2 -EndpointAssetId $pobjId
+    # get the entry in beachheadcoverage that matches this runner's IP
+    $query = "{\`"query\`":{\`"query_string\`": {\`"query\`": \`"$ip\`",\`"default_field\`": \`"ipAddress\`"}}}"
+    $fullEntry = Invoke-BcQueryDataStorePSv2 -Query $query -IndexName 'beachheadcoverage' -GroupId $group
+    # pull the entry out of the Elastic JSON
+    if ($fullEntry -match '\[(?<entry>[^]]+)\]') {
+        $entry = $Matches.entry
+        # pull the fail count from the entry
+        $searchStr = "$($sname.Replace(' ', ''))FailCount"
+        $regex = "`"$searchStr`":(?<count>\d),"
+        if ($entry -match $regex) {
+            # increment the fail count
+            $newCount = ([int]$Matches.Count) = + 1
+            $entry = $entry -replace $regex, "`"$($sname.Replace(' ', ''))FailCount`":$newCount,"
+            # format the entry for reupload
+            $entry = $entry -replace '"', '\"'
+            # remove the existing entry from Elastic
+            $deleteQuery = "{\`"query\`": {\`"match\`": {\`"ipAddress\`": \`"$ip\`"}}}"
+            Remove-BcDataStoreEntryPSv2 -GroupId $group -IndexName 'beachheadcoverage' -DeleteQuery $deleteQuery
+            # replace it with the new one
+            Invoke-BcBulkDataStoreInsertPSv2 -GroupId $group -IndexName 'beachheadcoverage' -Entries $entry
+        }
+    } else {
+        Throw 'Unable to update agent failure.'
+    }
 }
 
 #endregion
