@@ -203,17 +203,20 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         :completecalc foreach ($item in $coverage) {
             if ($item.bcAgent -ne $true) {
                 if ($item.bcAgentFailCount -lt 2 -or $item.bcAgentPsRemoteFailCount -lt 2 -or $item.bcAgentWmiFailCount -lt 2) {
-                    Tee-BcLog @logSplat -Message "Process is not completed. First endpoint found with missing bcAgent: $($item.name) - $($item.ipAddress)"
+                    Tee-BcLog @logSplat -Message "Process is not completed. Found endpoint with missing bcAgent: $($item.name) - $($item.ipAddress)"
                     $complete = $false
-                    break completecalc
+                    #break completecalc
+                } else {
+                    # no point in testing agent installs if no bcAgent exists
+                    continue completecalc
                 }
             }
             foreach ($ai in $agentInstalls) {
                 if ($item."$($ai.Name.Replace(' ',''))Installed" -ne $true) {
                     if ($item."$($ai.Name.Replace(' ',''))FailCount" -lt 2) {
-                        Tee-BcLog @logSplat -Message "Process is not completed. First endpoint found with missing agent ($($ai.Name)): $($item.name) - $($item.ipAddress)"
+                        Tee-BcLog @logSplat -Message "Process is not completed. Found endpoint with missing agent ($($ai.Name)): $($item.name) - $($item.ipAddress)"
                         $complete = $false
-                        break completecalc
+                        #break completecalc
                     }
                 }
             }
