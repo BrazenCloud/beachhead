@@ -5,7 +5,8 @@ param (
     [string]$BrazenCloudModuleVersion = '0.3.3-beta5',
     [System.IO.DirectoryInfo]$PwshCachePath = 'C:\tmp',
     [string]$PwshDownloadUri = 'https://github.com/PowerShell/PowerShell/releases/download/v7.3.1/PowerShell-7.3.1-win-x64.zip',
-    [switch]$UpdateModule
+    [switch]$UpdateModule,
+    [switch]$SkipAssessor
 )
 
 Function Test-ModulePresent {
@@ -97,6 +98,9 @@ if ($SampleActions.IsPresent) {
 }
 
 foreach ($manifest in $manifests) {
+    if ($SkipAssessor.IsPresent -and $manifest.Directory.Name -eq 'assessor') {
+        continue
+    }
     $namespace = "$actionPrefix`:$($manifest.Directory.Name)"
 
     Write-Host "----------------------------------------------"
