@@ -99,5 +99,5 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
 
     # check if deployer is running, if not, wait and initiate it
-    Start-DeployerJob -JobName 'Deployer' -Group $group
+    Start-DeployerJob -JobName 'Orchestrator' -Group $group
 }

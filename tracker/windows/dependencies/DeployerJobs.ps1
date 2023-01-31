@@ -1,15 +1,15 @@
 Function Get-DeployerJob {
     param (
-        [ValidateSet('Deployer', 'Monitor', 'AssetDiscovery')]
+        [ValidateSet('Orchestrator', 'Tracker', 'AssetDiscovery')]
         [string]$JobName,
         [string]$Group
     )
     switch ($JobName) {
-        'Deployer' {
-            $searchTag = 'Deployer'
+        'Orchestrator' {
+            $searchTag = 'Orchestrator'
         }
-        'Monitor' {
-            $searchTag = 'Monitor'
+        'Tracker' {
+            $searchTag = 'Tracker'
         }
         'AssetDiscovery' {
             $searchTag = 'AssetDiscovery'
@@ -46,7 +46,7 @@ Function Get-DeployerJob {
 }
 Function Start-DeployerJob {
     param (
-        [ValidateSet('Deployer', 'Monitor', 'AssetDiscovery')]
+        [ValidateSet('Orchestrator', 'Tracker', 'AssetDiscovery')]
         [string]$JobName,
         [string]$Group
     )
