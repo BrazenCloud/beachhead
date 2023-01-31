@@ -200,7 +200,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         }
         $coverage = Invoke-BcQueryDataStoreHelper @coverageSplat
         $complete = $true
-        :completecalc foreach ($item in $coverage) {
+        :completecalc foreach ($item in $coverage.Where({ $_.name.Length -gt 0 })) {
             if ($item.bcAgent -ne $true) {
                 if ($item.bcAgentFailCount -lt 2 -or $item.bcAgentPsRemoteFailCount -lt 2 -or $item.bcAgentWmiFailCount -lt 2) {
                     Tee-BcLog @logSplat -Message "Process is not completed. Found endpoint with missing bcAgent: $($item.name) - $($item.ipAddress)"
@@ -223,6 +223,40 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         }
         if ($complete) {
             Tee-BcLog @logSplat -Message "Process is complete!"
+            # disable monitor and deployer jobs
+            Tee-BcLog @logSplat -Message "Disabling recurring jobs..."
+            Enable-BcJob -JobId $settings.job_id -Value:$false
+            $skip = 0
+            $take = 1000
+            $query = @{
+                includeSubgroups  = $true
+                MembershipCheckId = $group
+                skip              = $skip
+                take              = $take
+                sortDirection     = 0
+                filter            = @{
+                    children = @(
+                        @{
+                            Left     = 'Tags'
+                            Operator = '='
+                            Right    = 'beachhead'
+                        },
+                        @{
+                            Left     = 'Tags'
+                            Operator = '='
+                            Right    = 'deployer'
+                        },
+                        @{
+                            Left     = 'Groups'
+                            Operator = '='
+                            Right    = $group
+                        }
+                    )
+                    operator = 'AND'
+                }
+            }
+            $deployJob = (Invoke-BcQueryJob -Query $query).Items[0]
+            Enable-BcJob -JobId $deployJob.Id -Value:$false
         }
     }
 }
