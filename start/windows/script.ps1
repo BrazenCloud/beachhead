@@ -84,7 +84,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $logSplat = @{
         Level   = 'Info'
         Group   = $group
-        JobName = 'Deploy Start'
+        JobName = 'Deployer Start'
     }
     Tee-BcLog @logSplat -Message 'BrazenCloud Deployer initialized'
 
@@ -99,10 +99,10 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
 
     # apply job tags
-    Tee-BcLog @logSplat -Message 'Tagging Deploy job...'
+    Tee-BcLog @logSplat -Message 'Tagging Start job...'
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.job_id | Out-Null
-    Add-BcTag -SetId $set -Tags 'Beachhead', 'Assessor' | Out-Null
+    Add-BcTag -SetId $set -Tags 'Beachhead', 'Start' | Out-Null
 
     # Initialize blank beachheadcoverage index
     # Get a whole list of targets
@@ -155,14 +155,14 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
     $assetdiscoverSplat = @{
-        Name          = 'Beachhead Asset Discovery'
+        Name          = 'Deployer Asset Discovery'
         GroupId       = $group
         EndpointSetId = $set
         IsEnabled     = $true
         IsHidden      = $false
         Actions       = @(
             @{
-                RepositoryActionId = (Get-BcRepository -Name 'beachhead:assetDiscover').Id
+                RepositoryActionId = (Get-BcRepository -Name 'deployer:assetDiscover').Id
                 Settings           = @{
                     "Group ID" = $group
                     "Targets"  = if ($settings.'Targets'.Length -gt 0) {
@@ -184,7 +184,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     if ($null -ne $job) {
         $set = New-BcSet
         Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
-        Add-BcTag -SetId $set -Tags 'Beachhead', 'AssetDiscovery'
+        Add-BcTag -SetId $set -Tags 'Deployer', 'AssetDiscovery'
     }
 
 
@@ -194,18 +194,18 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     #region Initiate periodic jobs
 
     #region Initiate deployer
-    Tee-BcLog @logSplat -Message 'Initiating deploy job...'
+    Tee-BcLog @logSplat -Message 'Initiating Orchestrator job...'
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
     $deployerSplat = @{
-        Name          = "Beachhead Deployer"
+        Name          = "Deployer Orchestrator"
         GroupId       = $group
         EndpointSetId = $set
         IsEnabled     = $true
         IsHidden      = $false
         Actions       = @(
             @{
-                RepositoryActionId = (Get-BcRepository -Name 'beachhead:deployer').Id
+                RepositoryActionId = (Get-BcRepository -Name 'deployer:orchestrator').Id
                 Settings           = @{
                     Targets = $settings.Targets
                 }
@@ -215,31 +215,31 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
     try {
         $job = New-BcJob @deployerSplat
-        Tee-BcLog @logSplat -Message "Created job: Beachhead Deployer"
+        Tee-BcLog @logSplat -Message "Created job: Deployer Orchestrator"
     } catch {
-        Tee-BcLog @logSplat -Message "Failed to create beachhead deployer job. Error: $($error[0].Message)" -Level Error
+        Tee-BcLog @logSplat -Message "Failed to create deployer orchestrator job. Error: $($error[0].Message)" -Level Error
     }
     if ($null -ne $job) {
         $set = New-BcSet
         Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
-        Add-BcTag -SetId $set -Tags 'Beachhead', 'Deployer'
+        Add-BcTag -SetId $set -Tags 'Deployer', 'Orchestrator'
     }
 
     #endregion
 
     #region Initiate monitor
-    Tee-BcLog @logSplat -Message 'Initiating monitor job...'
+    Tee-BcLog @logSplat -Message 'Initiating track job...'
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
     $monitorSplat = @{
-        Name          = "Beachhead Monitor"
+        Name          = "Deployer Tracker"
         GroupId       = $group
         EndpointSetId = $set
         IsEnabled     = $true
         IsHidden      = $false
         Actions       = @(
             @{
-                RepositoryActionId = (Get-BcRepository -Name 'beachhead:monitor').Id
+                RepositoryActionId = (Get-BcRepository -Name 'deployer:tracker').Id
                 Settings           = @{
                     'Failure Threshold' = $settings.'Failure Threshold'
                 }
@@ -249,17 +249,17 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
     try {
         $job = New-BcJob @monitorSplat
-        Tee-BcLog @logSplat -Message "Created job: Beachhead Monitor"
+        Tee-BcLog @logSplat -Message "Created job: Deployer Tracker"
     } catch {
-        Tee-BcLog @logSplat -Message "Failed to create beachhead monitor job. Error: $($error[0].Message)" -Level Error
+        Tee-BcLog @logSplat -Message "Failed to create Deployer Tracker job. Error: $($error[0].Message)" -Level Error
     }
     if ($null -ne $job) {
         $set = New-BcSet
         Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
-        Add-BcTag -SetId $set -Tags 'Beachhead', 'Monitor'
+        Add-BcTag -SetId $set -Tags 'Deployer', 'Tracker'
     }
     #endregion
 
-    Tee-BcLog @logSplat -Message 'Beachhead initialized.'
+    Tee-BcLog @logSplat -Message 'Deployer initialized.'
     #endregion
 }

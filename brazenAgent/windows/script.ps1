@@ -66,7 +66,7 @@ Function Update-FailCounts {
 
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     if (-not (Test-Path '..\..\..\pwsh\pwsh.exe')) {
-        Throw 'Pwsh missing, rerun assessor'
+        Throw 'Pwsh missing, rerun deployer:start'
     }
     Write-Host 'Executing pwsh...'
     ..\..\..\pwsh\pwsh.exe -ExecutionPolicy Bypass -File $($MyInvocation.MyCommand.Definition)
@@ -79,7 +79,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Group   = $group
         JobName = 'BrazenAgent Deployer'
     }
-    Tee-BcLog @logSplat -Message 'BrazenCloud BrazenAgent Deployer initialized'
+    Tee-BcLog @logSplat -Message 'BrazenAgent Deployer initialized'
 
     # Get a whole list of targets
     <#

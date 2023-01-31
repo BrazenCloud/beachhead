@@ -7,7 +7,7 @@
 #region PowerShell 7
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     if (-not (Test-Path '..\..\..\pwsh\pwsh.exe')) {
-        Throw 'Pwsh missing, rerun assessor'
+        Throw 'Pwsh missing, rerun deployer:start'
     }
     Write-Host 'Executing pwsh...'
     ..\..\..\pwsh\pwsh.exe -ExecutionPolicy Bypass -File $($MyInvocation.MyCommand.Definition)
@@ -21,7 +21,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Group   = $group
         JobName = 'Coverage Tracker'
     }
-    Tee-BcLog @logSplat -Message 'BrazenCloud Coverage Tracker initialized'
+    Tee-BcLog @logSplat -Message 'Deployer Tracker initialized'
 
     # Clean indexes
     Tee-BcLog @logSplat -Message 'Retrieving existing coverage data...'

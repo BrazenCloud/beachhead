@@ -20,10 +20,10 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Group   = $group
         JobName = 'Deploy Orchestrator'
     }
-    Tee-BcLog @logSplat -Message 'BrazenCloud Deploy Orchestrator initialized'
+    Tee-BcLog @logSplat -Message 'BrazenCloud Deployer Orchestrator initialized'
 
     #region Deploy BC Agent
-    $bcDeployerJobName = "Beachhead BrazenAgent Deploy"
+    $bcDeployerJobName = "Deployer BrazenAgent Deploy"
     $ea = Get-BcEndpointAssetHelper -NoRunner -GroupId $group
 
     # check for currently running job
@@ -35,14 +35,14 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         # add runners to set
         Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
         $jobSplat = @{
-            Name          = $bcDeployerJobName = "Beachhead BrazenAgent Deploy"
+            Name          = $bcDeployerJobName = "Deployer BrazenAgent Deploy"
             GroupId       = $group
             EndpointSetId = $set
             IsEnabled     = $true
             IsHidden      = $false
             Actions       = @(
                 @{
-                    RepositoryActionId = (Get-BcRepository -Name 'beachhead:bcDeployer').Id
+                    RepositoryActionId = (Get-BcRepository -Name 'deployer:brazenAgent').Id
                     Settings           = @{
                         'Enrollment Token' = (New-BcEnrollmentSession -Type 'EnrollPersistentRunner' -Expiration (Get-Date).AddDays(1) -GroupId $group -IsOneTime:$false).Token
                         IPs                = ($ea.LastIPAddress -join ',')
@@ -55,14 +55,14 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         $job = New-BcJob @jobSplat
         $set = New-BcSet
         Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
-        Add-BcTag -SetId $set -Tags 'Beachhead', 'BrazenAgentInstall'
+        Add-BcTag -SetId $set -Tags 'Deployer', 'BrazenAgent'
     }
 
     #endregion
 
     #region Deploy other required agents
     # Get agents to deploy
-    $installCheck = (Get-BcRepository -Name 'beachhead:installCheck').Id
+    $installCheck = (Get-BcRepository -Name 'deployer:installCheck').Id
     $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": {"query_string" : {"query" : "agentInstall", "default_field" : "type" } } }' -IndexName beachheadconfig
 
     # Get all endpointassets w/runner in current group
@@ -71,7 +71,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     # foreach agentInstall, get runners lacking the tag and assign the job
     :atd foreach ($atd in $agentInstalls) {
         Tee-BcLog @logSplat -Message "Checking for '$($atd.Name)' deploys..."
-        $agentJobName = "Beachhead Deploy: $($atd.Name)"
+        $agentJobName = "Deployer Deploy Agent: $($atd.Name)"
 
         # Get runners to deploy to
         $toAssign = ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
@@ -128,9 +128,9 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             $job = New-BcJob @jobSplat
             $set = New-BcSet
             Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
-            Add-BcTag -SetId $set -Tags 'Beachhead', 'AgentInstall'
+            Add-BcTag -SetId $set -Tags 'Deployer', 'AgentInstall'
 
-            Tee-BcLog @logSplat -Message "Created job: Beachead Deploy: $($atd.Name)"
+            Tee-BcLog @logSplat -Message "Created job: Deployer Deploy Agent: $($atd.Name)"
         } else {
             Tee-BcLog @logSplat -Message "No agents need $($atd.Name)"
         }

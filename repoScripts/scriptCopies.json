@@ -3,27 +3,27 @@
         "installCheck"
     ],
     "subnets.ps1": [
-        "assessor",
+        "start",
         "assetDiscover",
-        "bcDeployer"
+        "brazenAgent"
     ],
     "Enrollment.ps1": [
-        "bcDeployer"
+        "brazenAgent"
     ],
     "wmiexec.ps1": [
-        "bcDeployer"
+        "brazenAgent"
     ],
     "Get-IpAddressesInRange.ps1": [
-        "bcDeployer",
+        "brazenAgent",
         "assetDiscover",
-        "assessor"
+        "start"
     ],
     "Initialize-BcRunnerAuthentication.ps1": [
-        "assessor",
+        "start",
         "assetDiscover",
-        "bcDeployer",
-        "deployer",
-        "monitor"
+        "brazenAgent",
+        "orchestrator",
+        "tracker"
     ],
     "Initialize-BcRunnerAuthenticationPSv2.ps1": [
         "installCheck"
@@ -38,19 +38,19 @@
         "installCheck"
     ],
     "Parse-Targets.ps1": [
-        "bcDeployer",
+        "brazenAgent",
         "assetDiscover",
-        "assessor"
+        "start"
     ],
     "ConvertTo-DiscoverIpRange.ps1": [
         "assetDiscover"
     ],
     "Tee-BcLog.ps1": [
-        "assessor",
+        "start",
         "assetDiscover",
-        "bcDeployer",
-        "deployer",
-        "monitor"
+        "brazenAgent",
+        "orchestrator",
+        "tracker"
     ],
     "Get-BcEaGroupPSv2.ps1": [
         "installCheck"
@@ -60,7 +60,7 @@
     ],
     "BeachheadJobs.ps1": [
         "assetDiscover",
-        "bcDeployer",
-        "monitor"
+        "brazenAgent",
+        "tracker"
     ]
 }
