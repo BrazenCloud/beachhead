@@ -1,6 +1,11 @@
 [
     {
-        "Name": "Name",
+        "Name": "Agent Name",
+        "Type": 0,
+        "IsOptional": false
+    },
+    {
+        "Name": "Search Name",
         "Type": 0,
         "IsOptional": false
     },

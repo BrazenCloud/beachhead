@@ -107,7 +107,8 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
                 @{
                     RepositoryActionId = $installCheck
                     Settings           = @{
-                        Name               = $atd.InstalledName
+                        'Agent Name'       = $atd.name
+                        'Search Name'      = $atd.InstalledName
                         'Tag if installed' = $atd.installedTag
                     }
                 }
