@@ -60,6 +60,7 @@
     ],
     "BeachheadJobs.ps1": [
         "assetDiscover",
-        "bcDeployer"
+        "bcDeployer",
+        "monitor"
     ]
 }

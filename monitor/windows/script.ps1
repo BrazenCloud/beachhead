@@ -1,6 +1,7 @@
 #region dependencies
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 . .\windows\dependencies\Tee-BcLog.ps1
+. .\windows\dependencies\BeachheadJobs.ps1
 #endregion
 
 #region PowerShell 7
@@ -159,36 +160,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             - Other agents
     #>
     $monitorJob = Get-BcJob -JobId $settings.job_id
-    $skip = 0
-    $take = 1000
-    $query = @{
-        includeSubgroups  = $true
-        MembershipCheckId = $group
-        skip              = $skip
-        take              = $take
-        sortDirection     = 0
-        filter            = @{
-            children = @(
-                @{
-                    Left     = 'Tags'
-                    Operator = '='
-                    Right    = 'beachhead'
-                },
-                @{
-                    Left     = 'Tags'
-                    Operator = '='
-                    Right    = 'assetDiscovery'
-                },
-                @{
-                    Left     = 'Groups'
-                    Operator = '='
-                    Right    = $group
-                }
-            )
-            operator = 'AND'
-        }
-    }
-    $assetDiscoverJob = (Invoke-BcQueryJob -Query $query).Items[0]
+    $assetDiscoverJob = Get-BeachheadJob -JobName AssetDiscovery -Group $group
     if ($monitorJob.JobMetrics.Where({ $_.NumRunning -eq 0 }).Count -gt 3 -and $assetDiscoverJob.TotalEndpointsFinished -eq 1) {
         Tee-BcLog @logSplat -Message "Starting completion test..."
         # monitor job (this one) has run at least 3 times
@@ -226,36 +198,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             # disable monitor and deployer jobs
             Tee-BcLog @logSplat -Message "Disabling recurring jobs..."
             Enable-BcJob -JobId $settings.job_id -Value:$false
-            $skip = 0
-            $take = 1000
-            $query = @{
-                includeSubgroups  = $true
-                MembershipCheckId = $group
-                skip              = $skip
-                take              = $take
-                sortDirection     = 0
-                filter            = @{
-                    children = @(
-                        @{
-                            Left     = 'Tags'
-                            Operator = '='
-                            Right    = 'beachhead'
-                        },
-                        @{
-                            Left     = 'Tags'
-                            Operator = '='
-                            Right    = 'deployer'
-                        },
-                        @{
-                            Left     = 'Groups'
-                            Operator = '='
-                            Right    = $group
-                        }
-                    )
-                    operator = 'AND'
-                }
-            }
-            $deployJob = (Invoke-BcQueryJob -Query $query).Items[0]
+            $deployJob = Get-BeachheadJob -JobName Deployer -Group $group
             Enable-BcJob -JobId $deployJob.Id -Value:$false
         }
     }
