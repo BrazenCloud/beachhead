@@ -6,40 +6,8 @@
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 . .\windows\dependencies\Parse-Targets.ps1
 . .\windows\dependencies\Tee-BcLog.ps1
+. .\windows\dependencies\BeachheadJobs.ps1
 #endregion
-
-function Get-BeachheadMonitorJob {
-    [OutputType([BrazenCloudSdk.PowerShell.Models.IJobQueryView])]
-    [cmdletbinding()]
-    param (
-        [string]$group
-    )
-    $skip = 0
-    $take = 1000
-    $query = @{
-        includeSubgroups  = $false
-        MembershipCheckId = $group
-        skip              = $skip
-        take              = $take
-        sortDirection     = 0
-        filter            = @{
-            children = @(
-                @{
-                    Left     = 'Name'
-                    Operator = ':'
-                    Right    = 'Beachhead Monitor'
-                },
-                @{
-                    Left     = 'Groups'
-                    Operator = '='
-                    Right    = $group
-                }
-            )
-            operator = 'AND'
-        }
-    }
-    (Invoke-BcQueryJob -Query $query).Items
-}
 Function Update-FailCounts {
     [cmdletbinding()]
     param (
@@ -51,7 +19,7 @@ Function Update-FailCounts {
     $repeat = $true
     while ($repeat) {
         $repeat = $false
-        if ((Get-BeachheadMonitorJob).TotalEndpointsRunning -gt 0) {
+        if ((Get-BeachheadJob -JobName Monitor).TotalEndpointsRunning -gt 0) {
             Write-Host 'Monitor is running.'
             $repeat = $true
             Start-Sleep -Seconds 5
@@ -74,7 +42,7 @@ Function Update-FailCounts {
                 }
             }
         }
-        if ((Get-BeachheadMonitorJob).TotalEndpointsRunning -gt 0) {
+        if ((Get-BeachheadJob -JobName Monitor).TotalEndpointsRunning -gt 0) {
             Write-Host 'Monitor is running.'
             $repeat = $true
             Start-Sleep -Seconds 5
