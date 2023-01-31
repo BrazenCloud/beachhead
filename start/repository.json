@@ -1,5 +1,5 @@
 {
-    "Description": "Designed to be the initiator of the Deployer action bundle..",
+    "Description": "Designed to be the initiator of the Deployer action bundle.",
     "Language": "PowerShell",
     "Tags": [
         "Deployer",
