@@ -134,9 +134,10 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Tee-BcLog @logSplat -Message 'Calculating agent coverage...'
     $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName beachheadconfig
     foreach ($ai in $agentInstalls) {
+        $allNonFailedAgentEndpoints = $coverage | Where-Object { $_.name.Length -gt 0 -and ($_."$($ai.Name.Replace(' ',''))Installed" -eq $true -or $_."$($ai.Name.Replace(' ',''))FailCount" -lt [int]$settings.'Failure Threshold') }
         $installCount = ($endpointAssets | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
         $coverageSummary['counts']["$($ai.Name.Replace(' ',''))Installs"] = $installCount
-        $coverageSummary["$($ai.Name.Replace(' ',''))Coverage"] = $([math]::round($($installCount / $endpointAssets.Count), 2) * 100)
+        $coverageSummary["$($ai.Name.Replace(' ',''))Coverage"] = $([math]::round($($installCount / $allNonFailedAgentEndpoints.Count), 2) * 100)
         $coverageSummary['missing']["$($ai.Name.Replace(' ',''))Installs"] = @($endpointAssets | Where-Object { $_.Tags -notcontains $ai.InstalledTag } | ForEach-Object {
                 @{
                     Name       = $_.Name
