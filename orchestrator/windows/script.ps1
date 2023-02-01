@@ -22,14 +22,36 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
     Tee-BcLog @logSplat -Message 'BrazenCloud Deployer Orchestrator initialized'
 
+    # load coverage index
+    $coverageSplat = @{
+        GroupId     = $group
+        QueryString = '{ "query": { "match_all": { } } }'
+        IndexName   = 'deployercoverage'
+    }
+    $coverage = Invoke-BcQueryDataStoreHelper @coverageSplat
+    $coverageHt = @{}
+    foreach ($item in $coverage) {
+        $coverageHt[$item.ipAddress] = $item
+    }
+
     #region Deploy BC Agent
-    $ea = Get-BcEndpointAssetHelper -NoRunner -GroupId $group
+    $endpointAssets = Get-BcEndpointAssetHelper -NoRunner -GroupId $group
+
+    # get endpoints needing bc agent within failure threshold
+    $eaNeedBcAgent = foreach ($ea in $endpointAssets) {
+        if ($coverageHt.Keys -contains $ea.LastIPAddress) {
+            if ($coverageHt[$ea.LastIPAddress].bcAgentFailCount -lt [int]$settings.'Failure Threshold') {
+                $ea
+            }
+        }
+    }
 
     # check for currently running brazenAgent jobs
-    $bcAgentDeployJobs = Get-DeployerJob -Group $group -JobName BrazenAgent -Take 10 Where-Object { $_.TotalEndpointsRunning -gt 0 }
+    $bcAgentDeployJobs = Get-DeployerJob -Group $group -JobName BrazenAgent -Take 10 | Where-Object { $_.TotalEndpointsRunning -gt 0 }
+    $runningBcAgentDeployJobs = $bcAgentDeployJobs | Where-Object { $_.TotalEndpointsRunning -gt 0 }
 
     # only run if there are endpoint assets and no deployer jobs already running
-    if ($ea.Count -gt 0 -and $bcAgentDeployJobs.Count -lt 1) {
+    if ($eaNeedBcAgent.Count -gt 0 -and $runningBcAgentDeployJobs.Count -lt 1) {
         $set = New-BcSet
         # add runners to set
         Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
@@ -44,8 +66,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
                     RepositoryActionId = (Get-BcRepository -Name 'deployer:brazenAgent').Id
                     Settings           = @{
                         'Enrollment Token' = (New-BcEnrollmentSession -Type 'EnrollPersistentRunner' -Expiration (Get-Date).AddDays(1) -GroupId $group -IsOneTime:$false).Token
-                        IPs                = ($ea.LastIPAddress -join ',')
-                        Targets            = $settings.Targets
+                        Targets            = ($bcAgentDeployJobs).Count -eq 0 ? $settings.Targets : $eaNeedBcAgent.LastIPAddress -join ','
                     }
                 }
             )

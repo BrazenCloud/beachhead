@@ -208,7 +208,8 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             @{
                 RepositoryActionId = (Get-BcRepository -Name 'deployer:orchestrator').Id
                 Settings           = @{
-                    Targets = $settings.Targets
+                    Targets             = $settings.Targets
+                    'Failure Threshold' = $settings.'Failure Threshold'.ToString().Length -gt 0 ? $settings.'Failure Threshold' : 2
                 }
             }
         )
