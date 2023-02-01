@@ -76,6 +76,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $lastUpdate = Get-Date -Format "o"
 
     #region coverage
+    $nonFailAdditions = 0
     foreach ($ea in $endpointAssets) {
         if ($coverageHt.Keys -contains $ea.LastIPAddress) {
             $coverageHt[$ea.LastIPAddress].name = $ea.Name
@@ -86,6 +87,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             }
         } else {
             Tee-BcLog @logSplat -Message "EndpointAsset with IP: '$($ea.LastIPAddress)' does not exist in targets list. Adding."
+            $nonFailAdditions++
             $ht = @{
                 name                     = $ea.Name
                 operatingSystem          = $ea.OSName
@@ -119,11 +121,12 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     #endregion
 
     #region Coverage Summary
+    Tee-BcLog @logSplat -Message 'Calculating coverage summary...'
     $allNonFailedEndpoints = $coverage | Where-Object { $_.name.Length -gt 0 -and ($_.bcAgent -eq $true -or $_.bcAgentFailCount -lt [int]$settings.'Failure Threshold') }
     $allEndpointsWithBcAgent = $coverage | Where-Object { $_.name.Length -gt 0 -and $_.bcAgent -eq $true }
     $coverageSummary = @{
         LastUpdate          = $lastUpdate
-        BrazenCloudCoverage = $([math]::round(($allEndpointsWithBcAgent.Count / $allNonFailedEndpoints.Count), 2) * 100)
+        BrazenCloudCoverage = $([math]::round(($allEndpointsWithBcAgent.Count / ($allNonFailedEndpoints.Count + $nonFailAdditions)), 2) * 100)
         counts              = @{
             Runners        = ($endpointAssets | Where-Object { $_.HasRunner }).Count
             EndpointAssets = $endpointAssets.Count
@@ -139,7 +142,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         $allNonFailedAgentEndpoints = $coverage | Where-Object { $_.name.Length -gt 0 -and ($_."$($ai.Name.Replace(' ',''))Installed" -eq $true -or $_."$($ai.Name.Replace(' ',''))FailCount" -lt [int]$settings.'Failure Threshold') }
         $installCount = ($endpointAssets | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
         $coverageSummary['counts']["$($ai.Name.Replace(' ',''))Installs"] = $installCount
-        $coverageSummary["$($ai.Name.Replace(' ',''))Coverage"] = $([math]::round($($installCount / $allNonFailedAgentEndpoints.Count), 2) * 100)
+        $coverageSummary["$($ai.Name.Replace(' ',''))Coverage"] = $([math]::round($($installCount / $allNonFailedAgentEndpoints.Count + $nonFailAdditions), 2) * 100)
         $coverageSummary['missing']["$($ai.Name.Replace(' ',''))Installs"] = @($endpointAssets | Where-Object { $_.Tags -notcontains $ai.InstalledTag } | ForEach-Object {
                 @{
                     Name       = $_.Name
@@ -151,7 +154,6 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     
         Select-Object Name, LastIPAddress, PreferredMacAddress
     }
-    $coverageSummary | ConvertTo-Json -Depth 10 -Compress
 
     $coverageSummary | ConvertTo-Json -Depth 10 | Out-File .\results\coverageReportSummary.json
 
@@ -171,7 +173,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $trackerJob = Get-BcJob -JobId $settings.job_id
     $assetDiscoverJob = Get-DeployerJob -JobName AssetDiscovery -Group $group
     if ($trackerJob.JobMetrics.Where({ $_.NumRunning -eq 0 }).Count -ge 3 -and $assetDiscoverJob.TotalEndpointsFinished -eq 1) {
-        Tee-BcLog @logSplat -Message "Starting completion test..."
+        Tee-BcLog @logSplat -Message "Starting completion test with failure threshold of $($settings.'Failure Threshold')..."
         # tracker job (this one) has run at least 3 times
         # asset discover job has finished
         $coverageSplat = @{
