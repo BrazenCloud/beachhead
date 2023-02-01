@@ -209,7 +209,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
                 RepositoryActionId = (Get-BcRepository -Name 'deployer:orchestrator').Id
                 Settings           = @{
                     Targets             = $settings.Targets
-                    'Failure Threshold' = $settings.'Failure Threshold'.ToString().Length -gt 0 ? $settings.'Failure Threshold' : 2
+                    'Failure Threshold' = if ($settings.'Failure Threshold'.ToString().Length -gt 0) { $settings.'Failure Threshold' } else { 2 }
                 }
             }
         )
@@ -243,7 +243,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             @{
                 RepositoryActionId = (Get-BcRepository -Name 'deployer:tracker').Id
                 Settings           = @{
-                    'Failure Threshold' = $settings.'Failure Threshold'.ToString().Length -gt 0 ? $settings.'Failure Threshold' : 2
+                    'Failure Threshold' = if ($settings.'Failure Threshold'.ToString().Length -gt 0) { $settings.'Failure Threshold' } else { 2 }
                 }
             }
         )
