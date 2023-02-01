@@ -5,7 +5,8 @@ Function Tee-BcLog {
         [string]$Level,
         [string]$Message,
         [string]$JobName,
-        [string]$Group
+        [string]$Group,
+        [switch]$Complete
     )
     $timestamp = (Get-Date -Format 'o')
     $logHt = [ordered]@{
@@ -13,6 +14,9 @@ Function Tee-BcLog {
         level     = $Level
         job       = $JobName
         message   = $Message
+    }
+    if ($Complete.IsPresent) {
+        $logHt['completed'] = $true
     }
     Invoke-BcBulkDataStoreInsert -GroupId $Group -IndexName 'deployerlogs' -Data ($logHt | ForEach-Object { ConvertTo-Json $_ -Compress }) | Out-Null
     Write-Host "$timestamp [$Level] $Message"

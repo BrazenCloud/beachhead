@@ -209,6 +209,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             Enable-BcJob -JobId $settings.job_id -Value:$false
             $deployJob = Get-DeployerJob -JobName Orchestrator -Group $group
             Enable-BcJob -JobId $deployJob.Id -Value:$false
+            Tee-BcLog @logSplat -Message "Sending completion message." -Complete
         }
     }
 }
