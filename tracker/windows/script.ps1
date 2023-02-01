@@ -170,7 +170,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     #>
     $trackerJob = Get-BcJob -JobId $settings.job_id
     $assetDiscoverJob = Get-DeployerJob -JobName AssetDiscovery -Group $group
-    if ($trackerJob.JobMetrics.Where({ $_.NumRunning -eq 0 }).Count -gt 3 -and $assetDiscoverJob.TotalEndpointsFinished -eq 1) {
+    if ($trackerJob.JobMetrics.Where({ $_.NumRunning -eq 0 }).Count -ge 3 -and $assetDiscoverJob.TotalEndpointsFinished -eq 1) {
         Tee-BcLog @logSplat -Message "Starting completion test..."
         # tracker job (this one) has run at least 3 times
         # asset discover job has finished
