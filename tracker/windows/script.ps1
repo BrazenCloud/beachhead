@@ -207,10 +207,10 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         if ($complete) {
             Tee-BcLog @logSplat -Message "Completion check passed, stopping Deployer..."
             # disable tracker and deployer jobs
-            Enable-BcJob -JobId $settings.job_id -Value:$false
             $deployJob = Get-DeployerJob -JobName Orchestrator -Group $group
-            Enable-BcJob -JobId $deployJob.Id -Value:$false
+            Enable-BcJob -JobId $deployJob[0].Id -Value:$false
             Tee-BcLog @logSplat -Message "Process is complete!" -Complete
+            Enable-BcJob -JobId $settings.job_id -Value:$false
         }
     }
 }
