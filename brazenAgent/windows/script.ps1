@@ -122,10 +122,8 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     # Then find all remaining EndpointAssets without Runners that are in the ips array
     $remainingEndpoints = Get-BcEndpointAssetHelper -NoRunner -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
-    Tee-BcLog @logSplat -Message "Remaining target IP count: $($remainingEndpoints.Count)"
     Tee-BcLog @logSplat -Message "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
-
-    
+    Tee-BcLog @logSplat -Message "Remaining target IP count: $($remainingEndpoints.Count)"
 
     if ($remainingEndpoints.Count -eq 0) {
         Tee-BcLog @logSplat -Message 'No remaining endpoints, exiting.'
@@ -198,8 +196,8 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     # Then find all remaining EndpointAssets without Runners that are in the ips array
     $remainingEndpoints = Get-BcEndpointAssetHelper -NoRunner -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
-    Tee-BcLog @logSplat -Message "Remaining target IP count: $($remainingEndpoints.Count)"
     Tee-BcLog @logSplat -Message "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
+    Tee-BcLog @logSplat -Message "Remaining target IP count: $($remainingEndpoints.Count)"
 
     if ($remainingEndpoints.Count -eq 0) {
         Tee-BcLog @logSplat -Message 'No remaining endpoints, exiting.'
@@ -243,8 +241,8 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     # Then find all remaining EndpointAssets without Runners that are in the ips array
     $remainingEndpoints = Get-BcEndpointAssetHelper -NoRunner -GroupId $group | Where-Object { $ips -contains $_.LastIPAddress }
-    Tee-BcLog @logSplat -Message "Remaining target IP count: $($remainingEndpoints.Count)"
     Tee-BcLog @logSplat -Message "Remaining target IPs: $($remainingEndpoints.LastIPAddress -join ', ')"
+    Tee-BcLog @logSplat -Message "Remaining target IP count: $($remainingEndpoints.Count)"
 
     if ($remainingEndpoints.Count -gt 0) {
         Update-FailCounts -Ips $remainingEndpoints.LastIPAddress -Stage bcAgentWmiFailCount
