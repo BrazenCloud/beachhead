@@ -21,7 +21,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Group   = $group
         JobName = 'Coverage Tracker'
     }
-    Tee-BcLog @logSplat -Message 'Deployer Tracker initialized'
+    Tee-BcLog @logSplat -Message 'Deployer Coverage Tracker initialized'
 
     # Clean indexes
     Tee-BcLog @logSplat -Message 'Retrieving existing coverage data...'
@@ -203,9 +203,8 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             }
         }
         if ($complete) {
-            Tee-BcLog @logSplat -Message "Process is complete!"
+            Tee-BcLog @logSplat -Message "Process is complete! Stopping Deployer..."
             # disable tracker and deployer jobs
-            Tee-BcLog @logSplat -Message "Disabling recurring jobs..."
             Enable-BcJob -JobId $settings.job_id -Value:$false
             $deployJob = Get-DeployerJob -JobName Orchestrator -Group $group
             Enable-BcJob -JobId $deployJob.Id -Value:$false

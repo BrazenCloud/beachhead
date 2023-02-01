@@ -86,10 +86,11 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         Group   = $group
         JobName = 'Deployer Start'
     }
-    Tee-BcLog @logSplat -Message 'BrazenCloud Deployer initialized'
+    Tee-BcLog @logSplat -Message 'Deployer initialized'
 
     # Clean indexes
-    Tee-BcLog @logSplat -Message 'Cleaning coverage indexes...'
+    #Tee-BcLog @logSplat -Message 'Initializing coverage tracker indexes...'
+    Write-Host 'Cleaning coverage tracker indexes...'
     $existingIndexes = Get-BcDataStoreIndex -GroupId $group
     if ($existingIndexes -contains 'deployercoverage') {
         Remove-BcDataStoreIndex -GroupId $group -IndexName 'deployercoverage'
@@ -114,7 +115,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         "EndIp": ""
     }
     #>
-    Tee-BcLog @logSplat -Message 'Initializing Coverage Index...'
+    Tee-BcLog @logSplat -Message 'Initializing Coverage Tracker Indexes...'
     $deployTargets = Parse-Targets -Targets $settings.Targets
     # Build master IP list
     $ips = foreach ($deployTarget in $deployTargets) {
@@ -151,7 +152,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
 
     #region Initiate asset discovery
-    Tee-BcLog @logSplat -Message 'Initiating asset discovery job...'
+    Tee-BcLog @logSplat -Message 'Initiating Asset Discover job...'
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
     $assetdiscoverSplat = @{
@@ -215,7 +216,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
     try {
         $job = New-BcJob @deployerSplat
-        Tee-BcLog @logSplat -Message "Created job: Deployer Orchestrator"
+        Tee-BcLog @logSplat -Message "Created job: Deployer Orchestrator with ID: $($job.JobId)"
     } catch {
         Tee-BcLog @logSplat -Message "Failed to create deployer orchestrator job. Error: $($error[0].Message)" -Level Error
     }
@@ -228,7 +229,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     #endregion
 
     #region Initiate Tracker
-    Tee-BcLog @logSplat -Message 'Initiating track job...'
+    Tee-BcLog @logSplat -Message 'Initiating Coverage Tracker job...'
     $set = New-BcSet
     Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
     $TrackerSplat = @{
@@ -249,7 +250,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     }
     try {
         $job = New-BcJob @trackerSplat
-        Tee-BcLog @logSplat -Message "Created job: Deployer Tracker"
+        Tee-BcLog @logSplat -Message "Created job: Deployer Tracker with ID: $($job.JobId)"
     } catch {
         Tee-BcLog @logSplat -Message "Failed to create Deployer Tracker job. Error: $($error[0].Message)" -Level Error
     }
