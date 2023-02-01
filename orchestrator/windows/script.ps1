@@ -23,19 +23,18 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Tee-BcLog @logSplat -Message 'BrazenCloud Deployer Orchestrator initialized'
 
     #region Deploy BC Agent
-    $bcDeployerJobName = "Deployer BrazenAgent Deploy"
     $ea = Get-BcEndpointAssetHelper -NoRunner -GroupId $group
 
-    # check for currently running job
-    $deployerJobs = Get-BcJobByName -JobName $bcDeployerJobName | Where-Object { $_.TotalEndpointsRunning -gt 0 }
+    # check for currently running brazenAgent jobs
+    $bcAgentDeployJobs = Get-DeployerJob -Group $group -JobName BrazenAgent -Take 10 Where-Object { $_.TotalEndpointsRunning -gt 0 }
 
     # only run if there are endpoint assets and no deployer jobs already running
-    if ($ea.Count -gt 0 -and $deployerJobs.Count -lt 1) {
+    if ($ea.Count -gt 0 -and $bcAgentDeployJobs.Count -lt 1) {
         $set = New-BcSet
         # add runners to set
         Add-BcSetToSet -TargetSetId $set -ObjectIds $settings.prodigal_object_id | Out-Null
         $jobSplat = @{
-            Name          = $bcDeployerJobName = "Deployer BrazenAgent Deploy"
+            Name          = "Deployer BrazenAgent Deploy"
             GroupId       = $group
             EndpointSetId = $set
             IsEnabled     = $true
@@ -70,12 +69,12 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     # foreach agentInstall, get runners lacking the tag and assign the job
     :atd foreach ($atd in $agentInstalls) {
-        Tee-BcLog @logSplat -Message "Checking for '$($atd.Name)' deploys..."
+        Tee-BcLog @logSplat -Message "Checking for endpoints needing '$($atd.Name)'..."
         $agentJobName = "Deployer Deploy Agent: $($atd.Name)"
 
         # Get runners to deploy to
         $toAssign = ($endpointAssets | Where-Object { $_.Tags -notcontains $atd.installedTag }).Id
-        Tee-BcLog @logSplat -Message "Total assets missing tag: $($toAssign.Count)"
+        Write-Host "Total endpoints missing tag: $($toAssign.Count)"
 
         # Check for existing jobs
         $runningAssets = foreach ($agentJob in (Get-BcJobByName -JobName $agentJobName -GroupId $group | Where-Object { $_.TotalEndpointsFinished -lt $_.TotalEndpointsRunning })) {
@@ -89,7 +88,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             }
         }
         $runningAssets = $runningAssets | Select-Object -Unique
-        Tee-BcLog @logSplat -Message "Total assets already running: $($runningAssets.Count)"
+        Write-Host "Total assets already running: $($runningAssets.Count)"
 
         # filter out already running assets
         $toAssign = $toAssign | Where-Object { $runningAssets -notcontains $_ }
@@ -130,7 +129,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             Add-BcSetToSet -TargetSetId $set -ObjectIds $job.JobId
             Add-BcTag -SetId $set -Tags 'Deployer', 'AgentInstall'
 
-            Tee-BcLog @logSplat -Message "Created job: Deployer Deploy Agent: $($atd.Name)"
+            Tee-BcLog @logSplat -Message "Created job: Deployer Deploy Agent: $($atd.Name) with ID: '$($job.JobId)'"
         } else {
             Tee-BcLog @logSplat -Message "No agents need $($atd.Name)"
         }
