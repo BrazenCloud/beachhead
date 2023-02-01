@@ -207,7 +207,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             # disable tracker and deployer jobs
             Tee-BcLog @logSplat -Message "Disabling recurring jobs..."
             Enable-BcJob -JobId $settings.job_id -Value:$false
-            $deployJob = Get-DeployerJob -JobName Deployer -Group $group
+            $deployJob = Get-DeployerJob -JobName Orchestrator -Group $group
             Enable-BcJob -JobId $deployJob.Id -Value:$false
         }
     }
