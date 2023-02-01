@@ -242,7 +242,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
             @{
                 RepositoryActionId = (Get-BcRepository -Name 'deployer:tracker').Id
                 Settings           = @{
-                    'Failure Threshold' = $settings.'Failure Threshold'
+                    'Failure Threshold' = $settings.'Failure Threshold'.ToString().Length -gt 0 ? $settings.'Failure Threshold' : 2
                 }
             }
         )
