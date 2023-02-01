@@ -1,6 +1,7 @@
 #region dependencies
 . .\windows\dependencies\Initialize-BcRunnerAuthentication.ps1
 . .\windows\dependencies\Tee-BcLog.ps1
+. .\windows\dependencies\DeployerJobs.ps1
 #endregion
 
 #region PowerShell 7
@@ -66,7 +67,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
                     RepositoryActionId = (Get-BcRepository -Name 'deployer:brazenAgent').Id
                     Settings           = @{
                         'Enrollment Token' = (New-BcEnrollmentSession -Type 'EnrollPersistentRunner' -Expiration (Get-Date).AddDays(1) -GroupId $group -IsOneTime:$false).Token
-                        Targets            = ($bcAgentDeployJobs).Count -eq 0 ? $settings.Targets : $eaNeedBcAgent.LastIPAddress -join ','
+                        Targets            = if (($bcAgentDeployJobs).Count -eq 0) { $settings.Targets } else { $eaNeedBcAgent.LastIPAddress -join ',' }
                     }
                 }
             )
