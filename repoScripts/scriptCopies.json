@@ -61,6 +61,7 @@
     "DeployerJobs.ps1": [
         "assetDiscover",
         "brazenAgent",
-        "tracker"
+        "tracker",
+        "orchestrator"
     ]
 }

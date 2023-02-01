@@ -1,8 +1,9 @@
 Function Get-DeployerJob {
     param (
-        [ValidateSet('Orchestrator', 'Tracker', 'AssetDiscovery')]
+        [ValidateSet('Orchestrator', 'Tracker', 'AssetDiscovery', 'BrazenAgent')]
         [string]$JobName,
-        [string]$Group
+        [string]$Group,
+        [int]$Take = 1
     )
     switch ($JobName) {
         'Orchestrator' {
@@ -14,12 +15,15 @@ Function Get-DeployerJob {
         'AssetDiscovery' {
             $searchTag = 'AssetDiscovery'
         }
+        'BrazenAgent' {
+            $searchTag = 'BrazenAgent'
+        }
     }
     $query = @{
         includeSubgroups  = $true
         MembershipCheckId = $group
         skip              = 0
-        take              = 1
+        take              = $Take
         sortDirection     = 0
         filter            = @{
             children = @(
@@ -42,7 +46,7 @@ Function Get-DeployerJob {
             operator = 'AND'
         }
     }
-    (Invoke-BcQueryJob -Query $query).Items[0]
+    (Invoke-BcQueryJob -Query $query).Items
 }
 Function Start-DeployerJob {
     param (
