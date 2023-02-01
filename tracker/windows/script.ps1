@@ -30,11 +30,14 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         QueryString = '{ "query": { "match_all": { } } }'
         IndexName   = 'deployercoverage'
     }
+
+    # load indexes
     $coverage = Invoke-BcQueryDataStoreHelper @coverageSplat
     $coverageHt = @{}
     foreach ($item in $coverage) {
         $coverageHt[$item.ipAddress] = $item
     }
+    $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName deployerconfig
 
     #calculate runner coverage
     Tee-BcLog @logSplat -Message 'Calculating BrazenAgent coverage...'
@@ -132,7 +135,6 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
     #foreach agent deploy, calculate coverage
     Tee-BcLog @logSplat -Message 'Calculating agent coverage...'
-    $agentInstalls = Invoke-BcQueryDataStoreHelper -GroupId $group -QueryString '{ "query": { "query_string": { "query": "agentInstall", "default_field": "type" } } }' -IndexName deployerconfig
     foreach ($ai in $agentInstalls) {
         $allNonFailedAgentEndpoints = $coverage | Where-Object { $_.name.Length -gt 0 -and ($_."$($ai.Name.Replace(' ',''))Installed" -eq $true -or $_."$($ai.Name.Replace(' ',''))FailCount" -lt [int]$settings.'Failure Threshold') }
         $installCount = ($endpointAssets | Where-Object { $_.Tags -contains $ai.InstalledTag }).Count
