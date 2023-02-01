@@ -18,7 +18,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $logSplat = @{
         Level   = 'Info'
         Group   = $group
-        JobName = 'Deploy Orchestrator'
+        JobName = 'Orchestrator'
     }
     Tee-BcLog @logSplat -Message 'BrazenCloud Deployer Orchestrator initialized'
 
